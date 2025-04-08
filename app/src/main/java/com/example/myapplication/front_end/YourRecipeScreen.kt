@@ -1,0 +1,428 @@
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.*
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.filled.Star
+import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import coil.compose.rememberImagePainter
+import com.example.myapplication.R
+import com.example.myapplication.front_end.latoFontLI
+import com.example.myapplication.front_end.monte
+import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.ui.tooling.preview.Preview
+import androidx.navigation.NavHostController
+import com.example.myapplication.front_end.NavBar
+
+
+data class Recipe(
+    val nameOfPerson: String,
+    val name: String,
+    val imageResId: Int,
+    val rating: String,
+    val category: String,
+    val cookingTime: String,
+    val serving: Int
+)
+
+@Composable
+fun YourRecipeScreen(navController: NavHostController) {
+    val savedRecipes = remember {
+        mutableStateListOf(
+            Recipe("John Doe", "Delicious Pasta", R.drawable.tryfood, "4.5", "Lunch", "30 mins", 2),
+            Recipe("Jane Smith", "Easy Salad", R.drawable.tryfood, "4.8", "Lunch", "15 mins", 1),
+            Recipe("Peter Jones", "Morning Toast", R.drawable.tryfood, "4.2", "Breakfast", "5 mins", 1),
+            Recipe("Alice Brown", "Sweet Pancakes", R.drawable.tryfood, "4.9", "Breakfast", "20 mins", 2),
+            Recipe("Charlie Green", "Roasted Chicken", R.drawable.tryfood, "4.7", "Dinner", "60 mins", 4),
+            Recipe("Diana White", "Simple Soup", R.drawable.tryfood, "4.6", "Dinner", "45 mins", 3),
+            Recipe("Eve Black", "Fruity Smoothie", R.drawable.tryfood, "4.4", "Breakfast", "10 mins", 1),
+            Recipe("Frank Gray", "Grilled Salmon", R.drawable.tryfood, "4.8", "Dinner", "25 mins", 2),
+            Recipe("Grace Blue", "Quick Noodles", R.drawable.tryfood, "4.3", "Lunch", "12 mins", 1),
+            Recipe("Henry Red", "Baked Potatoes", R.drawable.tryfood, "4.5", "Dinner", "50 mins", 3),
+            Recipe("Ivy Gold", "Berry Yogurt", R.drawable.tryfood, "4.7", "Breakfast", "8 mins", 1),
+            Recipe("Jack Silver", "Vegetable Curry", R.drawable.tryfood, "4.6", "Lunch", "40 mins", 2),
+            Recipe("Jack Silver", "Vegetable Curry", R.drawable.tryfood, "4.6", "Secret", "40 mins", 2),
+        )
+    }
+
+    var selectedCollectionFilter by remember { mutableStateOf("All") }
+    var search by remember { mutableStateOf("") }
+    var selectedTab by remember { mutableStateOf(1) }
+
+    val groupedRecipes = remember(savedRecipes) {
+        savedRecipes.groupBy { it.category }
+    }
+
+    Scaffold(
+        topBar = {
+            Column(
+                modifier = Modifier.padding(16.dp)
+            ) {
+                TopAppBar(
+                    title = {
+                        Text(
+                            "Your Recipe",
+                            color = Color(0xFF1A4D2E),
+                            fontWeight = FontWeight(700),
+                            fontSize = 32.sp,
+                            fontFamily = monte
+                        )
+                    },
+                    backgroundColor = Color.White,
+                    elevation = 0.dp
+                )
+            }
+        },
+        bottomBar = {
+            Box(modifier = Modifier.fillMaxWidth().padding(16.dp), contentAlignment = Alignment.CenterEnd,) {
+                FloatingActionButton(
+                    onClick = { /* TODO: Handle add new recipe */ },
+                    backgroundColor = Color(0xFF1A4D2E),
+                    contentColor = Color.White
+                ) {
+                    Icon(Icons.Filled.Add, contentDescription = "Add new recipe")
+                }
+            }
+
+            NavBar(selectedItem = selectedTab, onItemSelected = {
+                selectedTab = it
+                if (it == 0) { // Index 0 corresponds to "Home"
+                    navController.navigate("home") // Navigate back to HomeScreen
+                }
+            })
+
+        }
+    ) { paddingValues ->
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(paddingValues)
+                .padding(horizontal = 16.dp)
+                .background(Color.White)
+        ) {
+
+            OutlinedTextField(
+                value = search,
+                onValueChange = { search = it /* TODO: Handle search query */ },
+                leadingIcon = { Icon(Icons.Filled.Search, contentDescription = "Search") },
+                placeholder = { Text("Search for a recipe") },
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(8.dp),
+                colors = TextFieldDefaults.outlinedTextFieldColors(
+                    focusedBorderColor = Color(0xFF1A4D2E),
+                    unfocusedBorderColor = Color.Gray,
+                    cursorColor = Color(0xFF1A4D2E)
+                )
+            )
+            Spacer(modifier = Modifier.height(16.dp))
+            Text(
+                "Collection",
+                fontSize = 20.sp,
+                fontFamily = monte,
+                fontWeight = FontWeight(600),
+            )
+            Spacer(modifier = Modifier.height(8.dp))
+            LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                item {
+                    FilterChip(text = "Filter", isSelected = false, onSelected = { /* TODO: Handle filter */ })
+                }
+                item {
+                    CollectionChip(
+                        text = "Collection",
+                        isSelected = selectedCollectionFilter == "Collection",
+                        onSelected = { selectedCollectionFilter = "Collection" })
+                }
+                item {
+                    CollectionChip(
+                        text = "All",
+                        isSelected = selectedCollectionFilter == "All",
+                        onSelected = { selectedCollectionFilter = "All" })
+                }
+                item {
+                    CollectionChip(
+                        text = "Favorites",
+                        isSelected = selectedCollectionFilter == "Favorites",
+                        onSelected = { selectedCollectionFilter = "Favorites" })
+                }
+            }
+            Spacer(modifier = Modifier.height(16.dp))
+
+            if (selectedCollectionFilter == "Collection") {
+                LazyVerticalGrid(
+                    columns = GridCells.Fixed(2), // Two folders per row
+                    verticalArrangement = Arrangement.spacedBy(8.dp),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    groupedRecipes.forEach { (category, recipes) ->
+                        item {
+                            RecipeCategoryFolder(category = category, recipes = recipes.take(4)) // Pass only the first 4
+                        }
+                    }
+                }
+            } else {
+                LazyVerticalGrid(
+                    columns = GridCells.Fixed(2),
+                    verticalArrangement = Arrangement.spacedBy(8.dp),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    val recipesToDisplay = if (selectedCollectionFilter == "All") {
+                        savedRecipes
+                    } else {
+                        savedRecipes.filter { it.category.equals(selectedCollectionFilter, ignoreCase = true) }
+                    }
+                    items(recipesToDisplay) { recipe ->
+                        RecipeCard(recipe = recipe)
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun RecipeCategoryFolder(category: String, recipes: List<Recipe>) {
+    Card(
+        shape = RoundedCornerShape(8.dp),
+        backgroundColor = Color(0xFFF0FFF0),
+        elevation = 1.dp,
+        modifier = Modifier
+            .fillMaxWidth()
+            .aspectRatio(1f) // Make the folder card square
+    ) {
+        Column(modifier = Modifier.padding(8.dp)) {
+            Text(
+                text = category,
+                fontWeight = FontWeight(600),
+                fontSize = 16.sp,
+                fontFamily = monte,
+                modifier = Modifier.padding(bottom = 8.dp)
+            )
+            if (recipes.isNotEmpty()) {
+                Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                    Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                        if (recipes.size >= 1) SmallRecipeCard(recipe = recipes[0])
+                        if (recipes.size >= 2) SmallRecipeCard(recipe = recipes[1])
+                    }
+                    Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                        if (recipes.size >= 3) SmallRecipeCard(recipe = recipes[2])
+                        if (recipes.size >= 4) SmallRecipeCard(recipe = recipes[3])
+                    }
+                }
+            } else {
+                Box(
+                    modifier = Modifier.fillMaxSize(),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text("No recipes in $category")
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun SmallRecipeCard(recipe: Recipe) {
+    Card(
+        shape = RoundedCornerShape(4.dp),
+        backgroundColor = Color(0xFFE0EEE0),
+        elevation = 1.dp,
+        modifier = Modifier
+            .width(65.dp)  // Ensures it fills available width
+            .aspectRatio(1f) // Adjusts the aspect ratio (2:1, width:height)
+            .clickable { /* Handle click on individual preview */ }
+    ) {
+        Box(
+            modifier = Modifier.fillMaxSize(),
+            contentAlignment = Alignment.Center
+        ) {
+            // Image inside the Box with full size and rounded corners
+            Image(
+                painter = rememberImagePainter(recipe.imageResId),
+                contentDescription = recipe.name,
+                modifier = Modifier
+                    .fillMaxSize()
+                    .clip(RoundedCornerShape(4.dp)),
+                contentScale = ContentScale.Crop
+            )
+
+            // Box overlay for the gradient and text
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(
+                        Brush.verticalGradient(
+                            colors = listOf(
+                                Color.Transparent,
+                                Color(0xFF698B69).copy(alpha = 0.3f),
+                                Color(0xFF1A4D2E).copy(alpha = 0.5f)
+                            )
+                        )
+                    )
+            ) {
+                Text(
+                    text = recipe.name,
+                    fontWeight = FontWeight.Bold,
+                    color = Color.White,
+                    fontSize = 10.sp, // Adjusted font size for sneak peek
+                    fontFamily = monte,
+                    maxLines = 1,
+                    modifier = Modifier
+                        .padding(start = 4.dp, bottom = 4.dp)
+                        .align(Alignment.BottomStart)  // Positioned at the bottom start
+                )
+            }
+        }
+    }
+}
+
+
+
+@Composable
+fun FilterChip(text: String, isSelected: Boolean, onSelected: (Boolean) -> Unit) {
+    val backgroundColor = if (isSelected) Color(26, 77, 46) else Color(0x801A4D2E)
+    val textColor = Color.White
+    Button(
+        onClick = { onSelected(!isSelected) },
+        shape = RoundedCornerShape(16.dp),
+        colors = ButtonDefaults.buttonColors(backgroundColor = backgroundColor, contentColor = textColor),
+        contentPadding = PaddingValues(horizontal = 12.dp, vertical = 6.dp),
+        elevation = ButtonDefaults.elevation(0.dp)
+    ) {
+        Icon(Icons.Filled.Person, contentDescription = "Filter Icon", tint = textColor, modifier = Modifier.size(16.dp))
+        Spacer(modifier = Modifier.width(4.dp))
+        Text(text, fontSize = 12.sp)
+    }
+}
+
+@Composable
+fun CollectionChip(text: String, isSelected: Boolean, onSelected: (String) -> Unit) {
+    val backgroundColor = if (isSelected) Color(0xFF1A4D2E) else Color(0x801A4D2E)
+    val textColor = Color.White
+    Button(
+        onClick = { onSelected(text) },
+        shape = RoundedCornerShape(16.dp),
+        colors = ButtonDefaults.buttonColors(backgroundColor = backgroundColor, contentColor = textColor),
+        contentPadding = PaddingValues(horizontal = 12.dp, vertical = 6.dp),
+        elevation = ButtonDefaults.elevation(0.dp)
+    ) {
+        Text(text, fontSize = 12.sp, fontFamily = monte)
+    }
+}
+
+@Composable
+fun RecipeCard(recipe: Recipe) {
+    Card(
+        shape = RoundedCornerShape(8.dp),
+        backgroundColor = Color(0xFFF0FFF0),
+        elevation = 1.dp,
+        modifier = Modifier
+            .padding(4.dp)
+            .aspectRatio(1f)
+            .height(175.dp)
+            .clickable { /* Handle click */ }
+    ) {
+        Box(modifier = Modifier.fillMaxSize()) {
+            Image(
+                painter = rememberImagePainter(recipe.imageResId),
+                contentDescription = recipe.name,
+                modifier = Modifier.fillMaxSize().clip(RoundedCornerShape(4.dp)),
+                contentScale = ContentScale.Crop
+            )
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(
+                        Brush.verticalGradient(
+                            colors = listOf(Color.Transparent, Color(60, 179, 107, 0), Color(26, 77, 46))
+                        )
+                    )
+            )
+            Text(
+                text = recipe.name,
+                fontWeight = FontWeight.Bold,
+                color = Color.White,
+                fontSize = 12.sp,
+                fontFamily = monte,
+                modifier = Modifier
+                    .align(Alignment.BottomStart)
+                    .padding(start = 8.dp, bottom = 8.dp)
+            )
+            Column(
+                horizontalAlignment = Alignment.Start,
+                modifier = Modifier.padding(top = 8.dp, start = 8.dp)
+            ) {
+                Box(
+                    modifier = Modifier
+                        .background(Color(0x801A4D2E), RoundedCornerShape(8.dp))
+                        .padding(vertical = 2.dp, horizontal = 6.dp)
+                ) {
+                    Text(
+                        text = recipe.nameOfPerson,
+                        fontSize = 8.sp,
+                        fontFamily = latoFontLI,
+                        fontWeight = FontWeight.Bold,
+                        color = Color.White
+                    )
+                }
+                Spacer(modifier = Modifier.height(4.dp))
+                Box(
+                    modifier = Modifier
+                        .background(Color(0xA0FFFFFF), RoundedCornerShape(8.dp))
+                        .padding(vertical = 2.dp, horizontal = 6.dp)
+                ) {
+                    Text(
+                        text = recipe.category,
+                        fontSize = 8.sp,
+                        fontFamily = monte,
+                        color = Color.Black
+                    )
+                }
+            }
+            Box(
+                modifier = Modifier
+                    .align(Alignment.TopEnd)
+                    .padding(top = 8.dp, end = 8.dp)
+                    .background(Color(0xA0FFFFFF), RoundedCornerShape(8.dp))
+                    .padding(vertical = 2.dp, horizontal = 6.dp)
+            ) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Icon(
+                        Icons.Filled.Star,
+                        contentDescription = "Rating",
+                        tint = Color(0xFFFFC107),
+                        modifier = Modifier.size(10.dp)
+                    )
+                    Text(
+                        text = recipe.rating,
+                        fontSize = 8.sp,
+                        fontFamily = monte,
+                        modifier = Modifier.padding(start = 2.dp),
+                        color = Color.Black
+                    )
+                }
+            }
+        }
+    }
+}
+
+
