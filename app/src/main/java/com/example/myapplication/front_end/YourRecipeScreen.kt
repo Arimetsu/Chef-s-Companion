@@ -1,3 +1,8 @@
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -68,11 +73,12 @@ fun YourRecipeScreen(navController: NavHostController) {
     var selectedCollectionFilter by remember { mutableStateOf("All") }
     var search by remember { mutableStateOf("") }
     var selectedTab by remember { mutableStateOf(1) }
+    var isFabExpanded by remember { mutableStateOf(false) }
 
     val groupedRecipes = remember(savedRecipes) {
         savedRecipes.groupBy { it.category }
     }
-
+// hello
     Scaffold(
         topBar = {
             Column(
@@ -94,15 +100,6 @@ fun YourRecipeScreen(navController: NavHostController) {
             }
         },
         bottomBar = {
-            Box(modifier = Modifier.fillMaxWidth().padding(16.dp), contentAlignment = Alignment.CenterEnd,) {
-                FloatingActionButton(
-                    onClick = { /* TODO: Handle add new recipe */ },
-                    backgroundColor = Color(0xFF1A4D2E),
-                    contentColor = Color.White
-                ) {
-                    Icon(Icons.Filled.Add, contentDescription = "Add new recipe")
-                }
-            }
 
             NavBar(selectedItem = selectedTab, onItemSelected = {
                 selectedTab = it
@@ -110,7 +107,75 @@ fun YourRecipeScreen(navController: NavHostController) {
                     navController.navigate("home") // Navigate back to HomeScreen
                 }
             })
-
+        },floatingActionButtonPosition = FabPosition.End, // Ensure FAB is at the end (right)
+        floatingActionButton = {
+            Row(verticalAlignment = Alignment.Bottom) {
+                AnimatedVisibility(
+                    visible = isFabExpanded,
+                    enter = slideInVertically(initialOffsetY = { -it }) + fadeIn(), // Slide in from above
+                    exit = slideOutVertically(targetOffsetY = { -it }) + fadeOut() // Slide out upwards
+                ) {
+                    Column(
+                        horizontalAlignment = Alignment.End, // Keep alignment for the buttons
+                        verticalArrangement = Arrangement.spacedBy(8.dp),
+                        modifier = Modifier.padding(end = 8.dp, bottom = 16.dp) // Adjust end padding
+                    ) {
+                        Box(
+                            contentAlignment = Alignment.CenterEnd
+                        ) {
+                            Button(
+                                onClick = {
+                                    isFabExpanded = false
+                                    // TODO: Handle "Recipe" click
+                                },
+                                shape = RoundedCornerShape(8.dp),
+                                colors = ButtonDefaults.buttonColors(
+                                    backgroundColor = Color(0xFF4CAF50),
+                                    contentColor = Color.White
+                                ),
+                                elevation = ButtonDefaults.elevation(defaultElevation = 4.dp)
+                            ) {
+                                Text("Recipe Finder", fontFamily = monte)
+                            }
+                        }
+                        Button(
+                            onClick = {
+                                isFabExpanded = false
+                                // TODO: Handle "Recipe" click
+                            },
+                            shape = RoundedCornerShape(8.dp),
+                            colors = ButtonDefaults.buttonColors(
+                                backgroundColor = Color(0xFF4CAF50),
+                                contentColor = Color.White
+                            ),
+                            elevation = ButtonDefaults.elevation(defaultElevation = 4.dp)
+                        ) {
+                            Text("Recipe", fontFamily = monte)
+                        }
+                        Button(
+                            onClick = {
+                                isFabExpanded = false
+                                // TODO: Handle "Collection" click
+                            },
+                            shape = RoundedCornerShape(8.dp),
+                            colors = ButtonDefaults.buttonColors(
+                                backgroundColor = Color(0xFF2196F3),
+                                contentColor = Color.White
+                            ),
+                            elevation = ButtonDefaults.elevation(defaultElevation = 4.dp)
+                        ) {
+                            Text("Collection", fontFamily = monte)
+                        }
+                    }
+                }
+                FloatingActionButton(
+                    onClick = { isFabExpanded = !isFabExpanded },
+                    backgroundColor = Color(0xFF1A4D2E),
+                    contentColor = Color.White
+                ) {
+                    Icon(Icons.Default.Add, contentDescription = "Add")
+                }
+            }
         }
     ) { paddingValues ->
         Column(
