@@ -30,7 +30,7 @@ class MainActivity : ComponentActivity() {
 fun MyApp() {
     val navController = rememberNavController()
 
-    NavHost(navController, startDestination = "signUp" ) {
+    NavHost(navController, startDestination = Screen.NewCollection.name ) {
         composable("signUp") { CreateAccountScreen(navController) }
         composable("emailVerification") { EmailVerificationScreen(navController) }
         composable("accountSuccessfully") { AccountSuccessfullyCreated(navController) }
@@ -42,11 +42,12 @@ fun MyApp() {
         composable("home") { HomeScreen(navController) } // Pass navController
         composable("yourRecipes") { YourRecipeScreen(navController) } // Pass navController
         composable(Screen.NewCollection.name) {
-            NewCollectionScreen(onNavigateToNaming = {
-                navController.navigate(
-                    Screen.NamingCollection.name
-                )
-            })
+            NewCollectionScreen(
+                onNavigateToNaming = {
+                    navController.navigate(Screen.NamingCollection.name)
+                },
+                navController = navController // Pass the navController
+            )
         }
         composable(Screen.NamingCollection.name) {
             NamingCollectionScreen(navController = navController) // Create this composable }

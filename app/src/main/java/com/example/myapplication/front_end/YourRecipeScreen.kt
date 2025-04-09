@@ -38,6 +38,7 @@ import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.navigation.NavHostController
 import com.example.myapplication.front_end.NavBar
+import com.example.yourapp.Screen
 
 
 data class Recipe(
@@ -156,6 +157,7 @@ fun YourRecipeScreen(navController: NavHostController) {
                             onClick = {
                                 isFabExpanded = false
                                 // TODO: Handle "Collection" click
+                                navController.navigate(Screen.NewCollection.name)
                             },
                             shape = RoundedCornerShape(8.dp),
                             colors = ButtonDefaults.buttonColors(

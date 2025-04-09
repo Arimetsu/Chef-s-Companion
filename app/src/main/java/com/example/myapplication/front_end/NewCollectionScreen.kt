@@ -32,10 +32,11 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import coil.compose.rememberImagePainter
 import com.example.myapplication.R
+import com.example.yourapp.Screen
 
 
 @Composable
-fun NewCollectionScreen(onNavigateToNaming: () -> Unit) {
+fun NewCollectionScreen(onNavigateToNaming: () -> Unit, navController: NavController) {
     val recipes = remember {
         mutableStateListOf(
             Recipe("John Doe", "Canned Tuna Pasta", R.drawable.tryfood, "9.5", "Lunch", "15", 1),
@@ -59,7 +60,9 @@ fun NewCollectionScreen(onNavigateToNaming: () -> Unit) {
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 // Back Button
-                IconButton(onClick = {  }) {
+                IconButton(onClick = { navController.navigate("yourRecipes") {
+                    popUpTo(Screen.NewCollection.name) { inclusive = true }
+                }  }) {
                     Icon(
                         Icons.Filled.ArrowBack,
                         contentDescription = "Back",
