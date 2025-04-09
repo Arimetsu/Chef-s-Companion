@@ -1,5 +1,6 @@
 package com.example.myapplication.front_end
 
+import android.R.attr.onClick
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -28,11 +29,13 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.navigation.NavController
 import coil.compose.rememberImagePainter
 import com.example.myapplication.R
 
+
 @Composable
-fun NewCollectionScreen() {
+fun NewCollectionScreen(onNavigateToNaming: () -> Unit) {
     val recipes = remember {
         mutableStateListOf(
             Recipe("John Doe", "Canned Tuna Pasta", R.drawable.tryfood, "9.5", "Lunch", "15", 1),
@@ -74,7 +77,7 @@ fun NewCollectionScreen() {
                 )
 
                 // Check Button
-                IconButton(onClick = {  }) {
+                IconButton(onClick = onNavigateToNaming) {
                     Icon(
                         Icons.Filled.Check,
                         contentDescription = "Check",
@@ -296,8 +299,70 @@ fun SelectedRecipesBar(selectedRecipes: List<Recipe>) {
     }
 }
 
-@Preview(showBackground = true)
 @Composable
-fun DefaultPreview() {
-    NewCollectionScreen()
+fun NamingCollectionScreen(navController: NavController) {
+    var collectionName by remember { mutableStateOf("") }
+
+    Scaffold(
+        topBar = {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(16.dp),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                // Back Button
+                IconButton(onClick = { navController.popBackStack() }) {
+                    Icon(
+                        Icons.Filled.ArrowBack,
+                        contentDescription = "Back",
+                        tint = Color(0xFF1B5E20) // Dark Green
+                    )
+                }
+
+                // Title
+                Text(
+                    text = "New Collection",
+                    fontSize = 24.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = Color(0xFF1B5E20), // Dark Green
+                    fontFamily = monte
+                )
+
+                // Check Button
+                IconButton(onClick = {}) {
+                    Icon(
+                        Icons.Filled.Check,
+                        contentDescription = "Check",
+                        tint = Color(0xFF1B5E20) // Dark Green
+                    )
+                }
+            }
+        }
+    ) { paddingValues ->
+        Column(
+            modifier = Modifier
+                .padding(paddingValues)
+                .padding(16.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(16.dp)
+        ) {
+            OutlinedTextField(
+                value = collectionName,
+                onValueChange = { collectionName = it },
+                label = { Text("Collection Name", fontFamily = monte) },
+                modifier = Modifier.fillMaxWidth()
+            )
+            Button(onClick = {
+                // TODO: Save the collection name and selected recipes
+                // Optionally navigate back to the main screen
+            }) {
+                Text("Create Collection", fontFamily = monte)
+            }
+        }
+    }
 }
+
+
+

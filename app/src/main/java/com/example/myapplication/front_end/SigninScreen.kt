@@ -63,11 +63,14 @@ fun CreateAccountScreen(navController: NavController){
     var isChecked by remember { mutableStateOf(false) }
     var passwordVisible by remember { mutableStateOf(false) }
     var passwordVisible_ by remember { mutableStateOf(false) }
+    var isPasswordValid by remember { mutableStateOf(true) }
+    var isPasswordTouched by remember { mutableStateOf(false) }
 
     var isError by remember { mutableStateOf(false) }
     var isPasswordMismatch by remember { mutableStateOf(false) }
     var showModal by remember { mutableStateOf(false) }
     var showError by remember { mutableStateOf(false) }
+    var isEmailTouched by remember { mutableStateOf(false) }
 
     Column(
         modifier = Modifier
@@ -142,11 +145,13 @@ fun CreateAccountScreen(navController: NavController){
                 )
             }
 
-
         }
         OutlinedTextField(
             value = username,
-            onValueChange = { username = it },
+            onValueChange = {  if (it.length <= 13) { // Restrict input to 13 characters
+                username = it
+            }
+                isError = username.length > 13 },
             label = { Text("Username") },
             placeholder = { Text("Ex. examplechef09") },
             modifier = Modifier.fillMaxWidth(),
@@ -189,11 +194,20 @@ fun CreateAccountScreen(navController: NavController){
                     fontFamily = latoFont,
                 )
             }
+            else if (!isValidEmail(email) && isEmailTouched){
+                Text(
+                    text = "Invalid Email Format",
+                    color = Color.Red, // Make the message red
+                    fontSize = 12.sp,
+                    fontFamily = latoFont,
+                )
+            }
         }
 
         OutlinedTextField(
             value = email,
-            onValueChange = { email = it },
+            onValueChange = { email = it
+                isEmailTouched = true},
             label = { Text("Email") },
             placeholder = { Text("example@gmail.com") },
             modifier = Modifier.fillMaxWidth(),
@@ -236,12 +250,23 @@ fun CreateAccountScreen(navController: NavController){
                     fontFamily = latoFont,
                 )
             }
+            else if (!isPasswordValid && isPasswordTouched){
+                Text(
+                    text = "Password must be 8-12 characters",
+                    color = Color.Red,
+                    fontSize = 12.sp,
+                    fontFamily = latoFont,
+                )
+            }
 
         }
 
         OutlinedTextField(
             value = password,
-            onValueChange = { password = it },
+            onValueChange = { newPassword ->
+                password = newPassword
+                isPasswordValid = newPassword.length in 8..12
+                isPasswordTouched = true },
             label = { Text("Password") },
             placeholder = { Text("******") },
             trailingIcon = {
@@ -258,7 +283,7 @@ fun CreateAccountScreen(navController: NavController){
                 fontFamily = latoFont // Change to your desired font
             ),
             shape = RoundedCornerShape(10.dp),
-            isError = isError,
+            isError = isError || !isPasswordValid && isPasswordTouched,
             singleLine = true,
             colors = OutlinedTextFieldDefaults.colors(
                 focusedBorderColor = Color(26, 77, 46),  // Border color when focused
@@ -363,7 +388,7 @@ fun CreateAccountScreen(navController: NavController){
 
         Button(
             onClick = {
-                isError = username.isBlank() || email.isBlank() || password.isBlank() || confirmPassword.isBlank()
+                isError = username.isBlank() || email.isBlank() || password.isBlank() || confirmPassword.isBlank() || !isValidEmail(email)
                 isPasswordMismatch = confirmPassword != password
                 showError = isChecked.not()
 
@@ -715,4 +740,7 @@ fun EmailVerificationScreen(navController: NavController){
     }
 }
 
+fun isValidEmail(email: String): Boolean {
+    return android.util.Patterns.EMAIL_ADDRESS.matcher(email).matches()
+}
 

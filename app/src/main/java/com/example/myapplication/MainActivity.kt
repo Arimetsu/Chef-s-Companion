@@ -5,6 +5,8 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.mutableStateListOf
+import androidx.lifecycle.ViewModel
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
@@ -28,7 +30,7 @@ class MainActivity : ComponentActivity() {
 fun MyApp() {
     val navController = rememberNavController()
 
-    NavHost(navController, startDestination = "home") {
+    NavHost(navController, startDestination = "signUp" ) {
         composable("signUp") { CreateAccountScreen(navController) }
         composable("emailVerification") { EmailVerificationScreen(navController) }
         composable("accountSuccessfully") { AccountSuccessfullyCreated(navController) }
@@ -39,7 +41,22 @@ fun MyApp() {
         composable("passwordChangeSuccessfully") { PasswordChangeSuccessfullyScreen(navController) }
         composable("home") { HomeScreen(navController) } // Pass navController
         composable("yourRecipes") { YourRecipeScreen(navController) } // Pass navController
+        composable(Screen.NewCollection.name) {
+            NewCollectionScreen(onNavigateToNaming = {
+                navController.navigate(
+                    Screen.NamingCollection.name
+                )
+            })
+        }
+        composable(Screen.NamingCollection.name) {
+            NamingCollectionScreen(navController = navController) // Create this composable }
+        }
     }
+}
+
+enum class Screen {
+    NewCollection,
+    NamingCollection
 }
 
 
