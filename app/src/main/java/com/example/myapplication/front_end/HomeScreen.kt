@@ -236,7 +236,7 @@ fun RecipeList() {
     val recipes = listOf(
         Recipe("Veni", "Spicy Firecracker Beef", R.drawable.tryfood, "9.5", "Lunch", "1 Hour", 5),
         Recipe("Vennidict", "Chicken Fajitas", R.drawable.tryfood, "9.2", "Dinner", "30 min", 1),
-        Recipe("Vennidict", "Canned Tuna Pasta", R.drawable.tryfood, "9.3", "Lunch", "30 min", 1),
+        Recipe("Vennidict", "Canned Tuna Pasta", R.drawable.tryfood, "9.3", "Breakfast", "30 min", 1),
         Recipe("Vennidict", "Canned Tuna Pasta", R.drawable.tryfood, "9.3", "Lunch", "30 min", 1),
         Recipe("Vennidict", "Canned Tuna Pasta", R.drawable.tryfood, "9.3", "Lunch", "30 min", 1),
     )
@@ -292,7 +292,7 @@ fun RecipeCard(recipe: Recipe) {
                     text = recipe.name,
                     fontWeight = FontWeight.Bold,
                     color = Color.White,
-                    fontSize = 14.sp,
+                    fontSize = 12.sp,
                     fontFamily = monte
                 )
                 Spacer(modifier = Modifier.height(2.dp))
@@ -348,8 +348,8 @@ fun RecipeCard(recipe: Recipe) {
                     .background(Color(255,255,255, 209), RoundedCornerShape(12.dp))
                     .padding(6.dp)
             ) {
-                Text(text = "Lunch",
-                    fontSize = 10.sp,
+                Text(text = recipe.category,
+                    fontSize = 8.sp,
                     fontFamily = monte,
                 )
             }
@@ -363,7 +363,7 @@ fun RecipeCard(recipe: Recipe) {
             ) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Icon(painter = painterResource(R.drawable.star), contentDescription = "Serving", tint = Color(255, 185, 0), modifier = Modifier.size(10.dp))
-                    Text(text = " ${recipe.rating}", fontSize = 10.sp, fontFamily = monte)
+                    Text(text = " ${recipe.rating}", fontSize = 8.sp, fontFamily = monte)
                 }
 
             }
