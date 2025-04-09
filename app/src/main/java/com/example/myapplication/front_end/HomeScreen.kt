@@ -1,6 +1,7 @@
 package com.example.myapplication.front_end
 
 import android.graphics.PointF.length
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.ui.unit.dp
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -80,7 +81,7 @@ fun HomeScreen(navController: NavHostController) { // Receive NavController
                 .fillMaxSize()
                 .padding(paddingValues)
         ) {
-            TopSection()
+            TopSection(navController)
             CategorySection()
             RecipeList()
         }
@@ -99,7 +100,7 @@ val monte = FontFamily(
 
 
 @Composable
-fun TopSection(){
+fun TopSection(navController: NavHostController){
     Column(modifier = Modifier.padding(14.dp)) {
         Row(modifier = Modifier.fillMaxWidth().padding(1.dp),
             verticalAlignment = Alignment.CenterVertically) {
@@ -167,24 +168,28 @@ fun TopSection(){
         }
         Spacer(modifier = Modifier.height(10.dp))
 
-        OutlinedTextField(
-            value = "",
-            onValueChange = {},
-            placeholder = { Text("Search for a recipe") },
-            modifier = Modifier.fillMaxWidth(),
-            shape = RoundedCornerShape(20.dp),
-            leadingIcon = {
-                Icon(
-                    imageVector = Icons.Filled.Search,
-                    contentDescription = "Search Icon",
-                    tint = Color(47, 65, 49),
-                    modifier = Modifier.size(25.dp)
-                )
-            },
-            colors = OutlinedTextFieldDefaults.colors(
-                unfocusedBorderColor = Color(47, 65, 49) // Border color when unfocused
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(8.dp)
+                .border(BorderStroke(2.dp, Color(0xFFD9D9D9)), RoundedCornerShape(24.dp))
+                .clickable(onClick = { navController.navigate("searchRecipe") })
+                .padding(8.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.Start
+        ) {
+            Icon(
+                imageVector = Icons.Filled.Search,
+                contentDescription = "Search",
+                tint = Color.Gray
             )
+            Spacer(modifier = Modifier.width(8.dp))
+            Text(
+                text = "Search for a recipe",
+                color = Color.Gray,
+                fontFamily = monte
             )
+        }
     }
 }
 

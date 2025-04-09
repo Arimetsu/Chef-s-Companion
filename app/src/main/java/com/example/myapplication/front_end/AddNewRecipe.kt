@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
@@ -26,18 +27,18 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.navigation.NavHostController
 import com.example.myapplication.R
-import com.example.yourapp.Screen
 
-@Preview
 @Composable
-fun NewRecipeScreen() {
+fun NewRecipeScreen(navController: NavHostController) {
     val primaryColor = Color(0xFF1B5E20) // Replace with your actual color
     var recipeName by remember { mutableStateOf("") }
     var selectedCuisine by remember { mutableStateOf("") }
-    val cuisineOptions = listOf("Filipino", "Italian", "Chinese", "Mexican", "Indian", "Other")
+    val cuisineOptions = listOf("Filipino", "Italian", "Chinese", "Mexican", "Indian", "Japanese")
     var isCuisineDropdownExpanded by remember { mutableStateOf(false) }
     var selectedCategory by remember { mutableStateOf("") }
     val categoryOptions = listOf("Main Dish", "Appetizer", "Dessert", "Side Dish", "Breakfast", "Snack")
@@ -51,12 +52,10 @@ fun NewRecipeScreen() {
     var selectedCollection by remember { mutableStateOf("") }
     val collectionOptions = listOf("Favorites", "To Try", "Quick Meals", "Family Recipes") // Example collections
     var isCollectionDropdownExpanded by remember { mutableStateOf(false) }
-    var imageUri by remember { mutableStateOf<android.net.Uri?>(null) } // For image picking (requires more setup)
 
     LazyColumn(
         modifier = Modifier
-            .fillMaxSize()
-            .background(primaryColor.copy(alpha = 0.8f)) // Apply background color
+            .fillMaxSize() // Apply background color
             .padding(16.dp)
     ) {
         item {
@@ -66,7 +65,9 @@ fun NewRecipeScreen() {
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 // Back Button
-                IconButton(onClick = { }) {
+                IconButton(onClick = {
+                    navController.navigate("yourRecipes")
+                }) {
                     Icon(
                         Icons.Filled.ArrowBack,
                         contentDescription = "Back",
@@ -184,21 +185,24 @@ fun NewRecipeScreen() {
                 OutlinedTextField(
                     value = selectedCuisine,
                     onValueChange = { /* Do nothing, it's a dropdown */ },
-                    label = { Text("Cuisine", color = Color.White) },
+                    label = { Text("Cuisine", color = Color(26, 77, 46)) },
                     modifier = Modifier
-                        .fillMaxWidth()
-                        .clickable { isCuisineDropdownExpanded = true }, // Use clickable here
+                        .fillMaxWidth(),
                     readOnly = true,
-                    textStyle = TextStyle(color = Color.White),
+                    textStyle = TextStyle(color = Color(26, 77, 46)),
                     colors = TextFieldDefaults.outlinedTextFieldColors(
-                        focusedBorderColor = Color.White,
-                        unfocusedBorderColor = Color.White.copy(alpha = 0.7f),
-                        focusedLabelColor = Color.White,
-                        unfocusedLabelColor = Color.White.copy(alpha = 0.7f),
-                        cursorColor = Color.White
+                        focusedBorderColor = Color(26, 77, 46),
+                        unfocusedBorderColor = Color(26, 77, 46).copy(alpha = 0.7f),
+                        focusedLabelColor = Color(26, 77, 46),
+                        unfocusedLabelColor = Color(26, 77, 46).copy(alpha = 0.7f),
+                        cursorColor = Color(26, 77, 46)
                     ),
                     trailingIcon = {
-                        Icon(Icons.Filled.ArrowDropDown, "Dropdown", tint = Color.White)
+                        IconButton(
+                            onClick = { isCuisineDropdownExpanded = true }
+                        ) {
+                            Icon(Icons.Filled.ArrowDropDown, "Dropdown", tint = Color(26, 77, 46))
+                        }
                     }
                 )
 
@@ -214,7 +218,9 @@ fun NewRecipeScreen() {
                                 isCuisineDropdownExpanded = false // Close the menu after selection
                             }
                         ) {
-                            Text(option) // Correctly using Text as a composable
+                            Text(option,
+                                fontFamily = monte,
+                                color = Color(26, 77, 46)) // Correctly using Text as a composable
                         }
                     }
                 }
@@ -225,119 +231,150 @@ fun NewRecipeScreen() {
 
         item {
             Column {
-                OutlinedTextField(
-                    value = selectedCategory,
-                    onValueChange = { /* Do nothing, it's a dropdown */ },
-                    label = { Text("Category", color = Color.White) },
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .clickable { isCategoryDropdownExpanded = true }, // Use clickable here
-                    readOnly = true,
-                    textStyle = TextStyle(color = Color.White),
-                    colors = TextFieldDefaults.outlinedTextFieldColors(
-                        focusedBorderColor = Color.White,
-                        unfocusedBorderColor = Color.White.copy(alpha = 0.7f),
-                        focusedLabelColor = Color.White,
-                        unfocusedLabelColor = Color.White.copy(alpha = 0.7f),
-                        cursorColor = Color.White
-                    ),
-                    trailingIcon = {
-                        Icon(Icons.Filled.ArrowDropDown, "Dropdown", tint = Color.White)
-                    }
-                )
-                DropdownMenu(
-                    expanded = isCategoryDropdownExpanded,
-                    onDismissRequest = { isCategoryDropdownExpanded = false },
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    categoryOptions.forEach { option ->
-                        DropdownMenuItem(onClick = {
-                            selectedCategory = option
-                            isCategoryDropdownExpanded = false
-                        }) {
-                            Text(option, color = primaryColor)
+                Box(modifier = Modifier.fillMaxWidth()) {
+                    OutlinedTextField(
+                        value = selectedCategory,
+                        onValueChange = { /* Do nothing, it's a dropdown */ },
+                        label = { Text("Category", color = Color(26, 77, 46)) },
+                        modifier = Modifier
+                            .fillMaxWidth(),
+                        readOnly = true,
+                        textStyle = TextStyle(color = Color(26, 77, 46)),
+                        colors = TextFieldDefaults.outlinedTextFieldColors(
+                            focusedBorderColor = Color(26, 77, 46),
+                            unfocusedBorderColor = Color(26, 77, 46).copy(alpha = 0.7f),
+                            focusedLabelColor = Color(26, 77, 46),
+                            unfocusedLabelColor = Color(26, 77, 46).copy(alpha = 0.7f),
+                            cursorColor = Color(26, 77, 46)
+                        ),
+                        trailingIcon = {
+                            IconButton(
+                                onClick = { isCategoryDropdownExpanded = true }
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Filled.ArrowDropDown,
+                                    contentDescription = "Dropdown",
+                                    tint = Color(26, 77, 46)
+                                )
+                            }
+                        }
+                    )
+                    DropdownMenu(
+                        expanded = isCategoryDropdownExpanded,
+                        onDismissRequest = { isCategoryDropdownExpanded = false },
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        categoryOptions.forEach { option ->
+                            DropdownMenuItem(onClick = {
+                                selectedCategory = option
+                                isCategoryDropdownExpanded = false
+                            }) {
+                                Text(option, color = Color(26, 77, 46)) // Change color as needed
+                            }
                         }
                     }
                 }
+                Spacer(modifier = Modifier.height(8.dp))
             }
-            Spacer(modifier = Modifier.height(8.dp))
         }
 
         item {
             OutlinedTextField(
                 value = servings,
-                onValueChange = { servings = it.filter { it.isDigit() } },
-                label = { Text("Servings", color = Color.White) },
+                onValueChange = {newText ->
+                    val filteredText = newText.filter { it.isDigit() }
+                    if (filteredText.isNotBlank()) {
+                        val intValue = filteredText.toInt()
+                        if (intValue <= 100) {
+                            servings = filteredText
+                        }
+                    } else {
+                        servings = "" // Allow clearing the field
+                    } },
+                label = { Text("Servings (Person)", color = Color(26, 77, 46)) },
                 modifier = Modifier.fillMaxWidth(),
-                textStyle = TextStyle(color = Color.White),
+                textStyle = TextStyle(color = Color(26, 77, 46)),
                 colors = TextFieldDefaults.outlinedTextFieldColors(
-                    focusedBorderColor = Color.White,
-                    unfocusedBorderColor = Color.White.copy(alpha = 0.7f),
-                    focusedLabelColor = Color.White,
-                    unfocusedLabelColor = Color.White.copy(alpha = 0.7f),
-                    cursorColor = Color.White
-                )
+                    focusedBorderColor = Color(26, 77, 46),
+                    unfocusedBorderColor = Color(26, 77, 46).copy(alpha = 0.7f),
+                    focusedLabelColor = Color(26, 77, 46),
+                    unfocusedLabelColor = Color(26, 77, 46).copy(alpha = 0.7f),
+                    cursorColor = Color(26, 77, 46)
+                ),
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number) // Set keyboard type to Number
             )
             Spacer(modifier = Modifier.height(8.dp))
         }
 
         item {
+            Column{
+                Text (
+                    text = "Cooking Time: ",
+                    fontFamily = monte,
+                    fontSize = 12.sp,
+                    color = Color(26, 77, 46)
+                )
+
             Row(
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 OutlinedTextField(
                     value = preparationHours,
-                    onValueChange = {
-                        if (it.length <= 2 && it.all { char -> char.isDigit() }) {
-                            preparationHours = it
+                    onValueChange = { newText ->
+                        val filteredText = newText.filter { it.isDigit() }
+                        if (filteredText.length <= 2) {
+                            if (filteredText.isNotBlank()) {
+                                val intValue = filteredText.toInt()
+                                if (intValue <= 24) { // Changed to 24 for hours (0-24)
+                                    preparationHours = filteredText
+                                }
+                            } else {
+                                preparationHours = "" // Allow clearing
+                            }
                         }
                     },
-                    label = { Text("HH", color = Color.White) },
+                    label = { Text("HH", color = Color(26, 77, 46)) },
                     modifier = Modifier.weight(1f),
-                    textStyle = TextStyle(color = Color.White),
+                    textStyle = TextStyle(color = Color(26, 77, 46)),
                     colors = TextFieldDefaults.outlinedTextFieldColors(
-                        focusedBorderColor = Color.White,
-                        unfocusedBorderColor = Color.White.copy(alpha = 0.7f),
-                        focusedLabelColor = Color.White,
-                        unfocusedLabelColor = Color.White.copy(alpha = 0.7f),
-                        cursorColor = Color.White
-                    )
+                        focusedBorderColor = Color(26, 77, 46),
+                        unfocusedBorderColor = Color(26, 77, 46).copy(alpha = 0.7f),
+                        focusedLabelColor = Color(26, 77, 46),
+                        unfocusedLabelColor = Color(26, 77, 46).copy(alpha = 0.7f),
+                        cursorColor = Color(26, 77, 46)
+                    ),
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
                 )
-                Text(":", color = Color.White, fontSize = 18.sp)
+                Text(":", color = Color(26, 77, 46), fontSize = 18.sp)
                 OutlinedTextField(
                     value = preparationMinutes,
-                    onValueChange = {
-                        if (it.length <= 2 && it.all { char -> char.isDigit() }) {
-                            preparationMinutes = it
+                    onValueChange = { newText ->
+                        val filteredText = newText.filter { it.isDigit() }
+                        if (filteredText.length <= 2) {
+                            if (filteredText.isNotBlank()) {
+                                val intValue = filteredText.toInt()
+                                if (intValue <= 59) { // Changed to 59 for minutes (0-59)
+                                    preparationMinutes = filteredText
+                                }
+                            } else {
+                                preparationMinutes = "" // Allow clearing
+                            }
                         }
                     },
-                    label = { Text("MM", color = Color.White) },
+                    label = { Text("MM", color = Color(26, 77, 46)) },
                     modifier = Modifier.weight(1f),
-                    textStyle = TextStyle(color = Color.White),
+                    textStyle = TextStyle(color = Color(26, 77, 46)),
                     colors = TextFieldDefaults.outlinedTextFieldColors(
-                        focusedBorderColor = Color.White,
-                        unfocusedBorderColor = Color.White.copy(alpha = 0.7f),
-                        focusedLabelColor = Color.White,
-                        unfocusedLabelColor = Color.White.copy(alpha = 0.7f),
-                        cursorColor = Color.White
-                    )
+                        focusedBorderColor = Color(26, 77, 46),
+                        unfocusedBorderColor = Color(26, 77, 46).copy(alpha = 0.7f),
+                        focusedLabelColor = Color(26, 77, 46),
+                        unfocusedLabelColor = Color(26, 77, 46).copy(alpha = 0.7f),
+                        cursorColor = Color(26, 77, 46)
+                    ),
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
                 )
-                Spacer(modifier = Modifier.width(8.dp))
-                OutlinedTextField(
-                    value = cookingTime,
-                    onValueChange = { it.filter { char -> char.isDigit() }.let { cookingTime = it } },
-                    label = { Text("Cooking Time (mins)", color = Color.White) },
-                    modifier = Modifier.weight(2f),
-                    textStyle = TextStyle(color = Color.White),
-                    colors = TextFieldDefaults.outlinedTextFieldColors(
-                        focusedBorderColor = Color.White,
-                        unfocusedBorderColor = Color.White.copy(alpha = 0.7f),
-                        focusedLabelColor = Color.White,
-                        unfocusedLabelColor = Color.White.copy(alpha = 0.7f),
-                        cursorColor = Color.White
-                    )
-                )
+            }
             }
             Spacer(modifier = Modifier.height(16.dp))
         }
@@ -346,17 +383,17 @@ fun NewRecipeScreen() {
             OutlinedTextField(
                 value = ingredients,
                 onValueChange = { ingredients = it },
-                label = { Text("Ingredients", color = Color.White) },
+                label = { Text("Ingredients", color = Color(26, 77, 46)) },
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(150.dp), // Adjust height as needed
-                textStyle = TextStyle(color = Color.White),
+                textStyle = TextStyle(color = Color(26, 77, 46)),
                 colors = TextFieldDefaults.outlinedTextFieldColors(
-                    focusedBorderColor = Color.White,
-                    unfocusedBorderColor = Color.White.copy(alpha = 0.7f),
-                    focusedLabelColor = Color.White,
-                    unfocusedLabelColor = Color.White.copy(alpha = 0.7f),
-                    cursorColor = Color.White
+                    focusedBorderColor = Color(26, 77, 46),
+                    unfocusedBorderColor = Color(26, 77, 46).copy(alpha = 0.7f),
+                    focusedLabelColor = Color(26, 77, 46),
+                    unfocusedLabelColor = Color(26, 77, 46).copy(alpha = 0.7f),
+                    cursorColor = Color(26, 77, 46)
                 )
             )
             Spacer(modifier = Modifier.height(16.dp))
@@ -366,17 +403,17 @@ fun NewRecipeScreen() {
             OutlinedTextField(
                 value = instructions,
                 onValueChange = { instructions = it },
-                label = { Text("Instructions", color = Color.White) },
+                label = { Text("Instructions", color = Color(26, 77, 46)) },
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(150.dp), // Adjust height as needed
-                textStyle = TextStyle(color = Color.White),
+                textStyle = TextStyle(color = Color(26, 77, 46)),
                 colors = TextFieldDefaults.outlinedTextFieldColors(
-                    focusedBorderColor = Color.White,
-                    unfocusedBorderColor = Color.White.copy(alpha = 0.7f),
-                    focusedLabelColor = Color.White,
-                    unfocusedLabelColor = Color.White.copy(alpha = 0.7f),
-                    cursorColor = Color.White
+                    focusedBorderColor = Color(26, 77, 46),
+                    unfocusedBorderColor = Color(26, 77, 46).copy(alpha = 0.7f),
+                    focusedLabelColor = Color(26, 77, 46),
+                    unfocusedLabelColor = Color(26, 77, 46).copy(alpha = 0.7f),
+                    cursorColor = Color(26, 77, 46)
                 )
             )
             Spacer(modifier = Modifier.height(16.dp))
@@ -387,21 +424,28 @@ fun NewRecipeScreen() {
                 OutlinedTextField(
                     value = selectedCollection,
                     onValueChange = { /* Do nothing, it's a dropdown */ },
-                    label = { Text("Save to Collection", color = Color.White) },
+                    label = { Text("Save to Collection", color = Color(26, 77, 46)) },
                     modifier = Modifier
-                        .fillMaxWidth()
-                        .clickable { isCollectionDropdownExpanded = true }, // Use clickable here
+                        .fillMaxWidth(),
                     readOnly = true,
-                    textStyle = TextStyle(color = Color.White),
+                    textStyle = TextStyle(color = Color(26, 77, 46)),
                     colors = TextFieldDefaults.outlinedTextFieldColors(
-                        focusedBorderColor = Color.White,
-                        unfocusedBorderColor = Color.White.copy(alpha = 0.7f),
-                        focusedLabelColor = Color.White,
-                        unfocusedLabelColor = Color.White.copy(alpha = 0.7f),
-                        cursorColor = Color.White
+                        focusedBorderColor = Color(26, 77, 46),
+                        unfocusedBorderColor = Color(26, 77, 46).copy(alpha = 0.7f),
+                        focusedLabelColor = Color(26, 77, 46),
+                        unfocusedLabelColor = Color(26, 77, 46).copy(alpha = 0.7f),
+                        cursorColor = Color(26, 77, 46)
                     ),
                     trailingIcon = {
-                        Icon(Icons.Filled.ArrowDropDown, "Dropdown", tint = Color.White)
+                        IconButton(
+                            onClick = { isCollectionDropdownExpanded = true }
+                        ) {
+                            Icon(
+                                imageVector = Icons.Filled.ArrowDropDown,
+                                contentDescription = "Dropdown",
+                                tint = Color(26, 77, 46)
+                            )
+                        }
                     }
                 )
                 DropdownMenu(
@@ -435,23 +479,31 @@ fun NewRecipeScreen() {
                         // (recipeName, selectedCuisine, ingredients, etc.) here
                     },
                     modifier = Modifier.weight(1f),
-                    colors = ButtonDefaults.buttonColors(backgroundColor = Color(0xFF4CAF50), contentColor = Color.White),
+                    colors = ButtonDefaults.buttonColors(backgroundColor = Color(0xFF1A4D2E), contentColor = Color.White),
                     shape = RoundedCornerShape(8.dp)
                 ) {
-                    Text("Save")
+                    Text(
+                        text = "Save",
+                        fontFamily = monte,
+                        color = Color.White
+                    )
                 }
                 OutlinedButton(
                     onClick = {
                         // Implement cancel logic here
-                        println("Cancel clicked")
                         // You might want to navigate back or clear the form
+                        navController.navigate("yourRecipes")
                     },
                     modifier = Modifier.weight(1f),
-                    border = BorderStroke(1.dp, Color.White), // Use BorderStroke here
+                    border = BorderStroke(1.dp, Color(26, 77, 46)), // Use BorderStroke here
                     shape = RoundedCornerShape(8.dp),
                     colors = ButtonDefaults.outlinedButtonColors(contentColor = Color.White)
                 ) {
-                    Text("Cancel")
+                    Text(
+                        text = "Cancel",
+                        fontFamily = monte,
+                        color = Color(26, 77, 46)
+                    )
                 }
             }
         }

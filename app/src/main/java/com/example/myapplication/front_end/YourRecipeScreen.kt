@@ -3,8 +3,10 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -26,7 +28,6 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -34,8 +35,6 @@ import coil.compose.rememberImagePainter
 import com.example.myapplication.R
 import com.example.myapplication.front_end.latoFontLI
 import com.example.myapplication.front_end.monte
-import androidx.compose.foundation.lazy.grid.items
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.navigation.NavHostController
 import com.example.myapplication.front_end.NavBar
 import com.example.yourapp.Screen
@@ -143,6 +142,7 @@ fun YourRecipeScreen(navController: NavHostController) {
                             onClick = {
                                 isFabExpanded = false
                                 // TODO: Handle "Recipe" click
+                                navController.navigate("addRecipe")
                             },
                             shape = RoundedCornerShape(8.dp),
                             colors = ButtonDefaults.buttonColors(
@@ -188,19 +188,29 @@ fun YourRecipeScreen(navController: NavHostController) {
                 .background(Color.White)
         ) {
 
-            OutlinedTextField(
-                value = search,
-                onValueChange = { search = it /* TODO: Handle search query */ },
-                leadingIcon = { Icon(Icons.Filled.Search, contentDescription = "Search") },
-                placeholder = { Text("Search for a recipe") },
-                modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(8.dp),
-                colors = TextFieldDefaults.outlinedTextFieldColors(
-                    focusedBorderColor = Color(0xFF1A4D2E),
-                    unfocusedBorderColor = Color.Gray,
-                    cursorColor = Color(0xFF1A4D2E)
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(8.dp)
+                    .border(BorderStroke(2.dp, Color(0xFFD9D9D9)), RoundedCornerShape(24.dp))
+                    .clickable(onClick = { navController.navigate("searchRecipe")})
+                    .padding(8.dp)
+                    .background(Color.Transparent),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.Start,
+            ) {
+                Icon(
+                    imageVector = Icons.Filled.Search,
+                    contentDescription = "Search",
+                    tint = Color.Gray
                 )
-            )
+                Spacer(modifier = Modifier.width(8.dp))
+                Text(
+                    text = "Search for a recipe",
+                    color = Color.Gray,
+                    fontFamily = monte
+                )
+            }
             Spacer(modifier = Modifier.height(16.dp))
             Text(
                 "Collection",

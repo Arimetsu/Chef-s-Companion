@@ -28,6 +28,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.navigation.NavHostController
 import com.example.myapplication.R
 import com.example.myapplication.front_end.monte
 
@@ -42,19 +43,14 @@ enum class SearchItemType {
     USER, QUERY, RECIPE
 }
 
-@SuppressLint("UnusedMaterialScaffoldPaddingParameter")
 @Composable
-fun InteractionSearchScreen() {
-    Scaffold(
-        topBar = {
-        }
-    ) {
+fun InteractionSearchScreen(navController: NavHostController) {
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(horizontal = 16.dp)
         ) {
-            SearchBar()
+            SearchBar(navController)
             RecentSearches(
                 recentItems = listOf(
                     RecentSearchItem(SearchItemType.USER, "xampleeuser", "sample name\n20.2M followers", R.drawable.user),
@@ -73,10 +69,10 @@ fun InteractionSearchScreen() {
             )
         }
     }
-}
+
 
 @Composable
-fun SearchBar() {
+fun SearchBar(navController: NavHostController) {
     var search by remember { mutableStateOf("") }
     Spacer(modifier = Modifier.height(24.dp))
     Column(
@@ -89,7 +85,7 @@ fun SearchBar() {
             verticalAlignment = Alignment.CenterVertically
         ) {
 
-            IconButton(onClick = { /*TODO: Handle back navigation*/ }) {
+            IconButton(onClick = { navController.navigate("home") }) {
                 Icon(Icons.Filled.ArrowBack, contentDescription = "Back")
             }
             OutlinedTextField(
@@ -214,10 +210,4 @@ fun RecentSearchItemRow(item: RecentSearchItem) {
             Icon(Icons.Filled.Close, contentDescription = "Remove")
         }
     }
-}
-
-@Preview(showBackground = true)
-@Composable
-fun PreviewInteractionSearchScreen() {
-    InteractionSearchScreen()
 }

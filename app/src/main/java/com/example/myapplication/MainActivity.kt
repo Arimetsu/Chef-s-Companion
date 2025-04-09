@@ -1,5 +1,6 @@
 package com.example.yourapp
 
+import InteractionSearchScreen
 import YourRecipeScreen
 import android.os.Bundle
 import androidx.activity.ComponentActivity
@@ -52,6 +53,8 @@ fun MyApp() {
         composable(Screen.NamingCollection.name) {
             NamingCollectionScreen(navController = navController) // Create this composable }
         }
+        composable("addRecipe"){NewRecipeScreen(navController)}
+        composable("searchRecipe") { InteractionSearchScreen(navController) }
     }
 }
 
