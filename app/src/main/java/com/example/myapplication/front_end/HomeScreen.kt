@@ -1,6 +1,6 @@
 package com.example.myapplication.front_end
 
-import android.graphics.PointF.length
+import Recipe
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.ui.unit.dp
 import androidx.compose.foundation.Image
@@ -10,12 +10,8 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -23,31 +19,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.dp
 import com.example.myapplication.R
 import androidx.compose.ui.unit.sp
-
 import androidx.compose.ui.text.font.FontFamily
-
-import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.text.TextStyle
-import androidx.compose.ui.text.input.KeyboardType
-import androidx.compose.ui.text.input.VisualTransformation
-import androidx.compose.ui.text.style.TextDecoration
-import androidx.compose.ui.window.Dialog
-import androidx.navigation.NavController
-import androidx.navigation.compose.NavHost
-import androidx.navigation.compose.composable
-import androidx.navigation.compose.rememberNavController
-import kotlinx.coroutines.delay
 import androidx.compose.ui.text.font.Font
-import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.*
-
-import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
@@ -56,15 +32,27 @@ import androidx.compose.material.Text
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.layout.ContentScale
 import coil.compose.rememberImagePainter
-import androidx.compose.material3.CardElevation
 import androidx.compose.ui.Alignment
-import androidx.compose.ui.graphics.graphicsLayer
 import androidx.navigation.NavHostController
-import kotlin.contracts.contract
+import recipes
+
+
+val bb2 = FontFamily(
+    Font(R.font.bb2_regular),
+    Font(R.font.bb2_bold, FontWeight.Bold)
+)
+val monte = FontFamily(
+    Font(R.font.montserrat_regular),
+    Font(R.font.montserrat_bold, FontWeight.Bold),
+    Font(R.font.montserrat_light, FontWeight.Light)
+)
 
 @Composable
 fun HomeScreen(navController: NavHostController) { // Receive NavController
     var selectedTab by remember { mutableStateOf(0) }
+    // This state correctly drives the recipe filtering
+    var selectedCategory by remember { mutableStateOf("All") }
+
 
     Scaffold(
         bottomBar = {
@@ -82,22 +70,11 @@ fun HomeScreen(navController: NavHostController) { // Receive NavController
                 .padding(paddingValues)
         ) {
             TopSection(navController)
-            CategorySection()
-            RecipeList()
+            CategorySection(onCategorySelected = { category -> selectedCategory = category })
+            RecipeList(selectedCategory = selectedCategory)
         }
     }
 }
-
-val bb2 = FontFamily(
-    Font(R.font.bb2_regular),
-    Font(R.font.bb2_bold, FontWeight.Bold)
-)
-val monte = FontFamily(
-    Font(R.font.montserrat_regular),
-    Font(R.font.montserrat_bold, FontWeight.Bold),
-    Font(R.font.montserrat_light, FontWeight.Light)
-)
-
 
 @Composable
 fun TopSection(navController: NavHostController){
@@ -124,7 +101,7 @@ fun TopSection(navController: NavHostController){
                         .clip(RoundedCornerShape(50.dp)) // Clip the border to rounded corners
                 ) {
                     Image(
-                        painter = painterResource(R.drawable.notif), // Your colored Google icon
+                        painter = painterResource(R.drawable.notif),
                         contentDescription = "Notification",
                         modifier = Modifier
                             .size(20.dp) // Set the size of the image
@@ -194,68 +171,69 @@ fun TopSection(navController: NavHostController){
 }
 
 @Composable
-fun CategorySection() {
-
+fun CategorySection(onCategorySelected: (String) -> Unit) {
+    // Categories list
     val categories = listOf("All", "Breakfast", "Lunch", "Dinner", "Dessert")
-    var selectedCategory by remember { mutableStateOf(categories[0]) }
-    Box(modifier = Modifier.padding(start = 16.dp)) {
-        Text(
-            text = "Categories", // name
-            fontFamily = monte,
-            fontSize = 20.sp,
-            fontWeight = FontWeight(600),
-        )
-    }
+    // Internal state for highlighting the selected button
+    var selectedCategoryState by remember { mutableStateOf("All") }
+
     LazyRow(
+        contentPadding = PaddingValues(horizontal = 14.dp), // Padding for the whole row
         horizontalArrangement = Arrangement.spacedBy(10.dp),
-        modifier = Modifier.padding(top = 10.dp, bottom = 10.dp)) {
-        items(
-            count = categories.size, // Number of items
-            key = { index -> categories[index] }, // Unique key for each item
-            contentType = { index -> categories[index] }, // Content type for each item
-            itemContent = { index -> // Composable for each item
-                val category = categories[index]
-                Box(
-                    modifier = Modifier
-                        .clip(RoundedCornerShape(20.dp))
-                        .background(
-                            if (selectedCategory == category) Color(26, 77, 46) else Color.LightGray // Change color based on selection
-                        )
-                        .clickable { selectedCategory = category } // Update selected category on click
-                        .padding(horizontal = 16.dp, vertical = 8.dp)
-                ) {
-                    Text(
-                        text = category,
-                        color = if (selectedCategory == category) Color.White else Color(0, 0, 0, 64), // Change text color based on selection
-                        fontFamily = monte
-                    )
-                }
-            }
-        )
-    }
-}
-
-@Preview
-@Composable
-fun RecipeList() {
-    val recipes = listOf(
-        Recipe("Veni", "Spicy Firecracker Beef", R.drawable.tryfood, "9.5", "Lunch", "1 Hour", 5),
-        Recipe("Vennidict", "Chicken Fajitas", R.drawable.tryfood, "9.2", "Dinner", "30 min", 1),
-        Recipe("Vennidict", "Canned Tuna Pasta", R.drawable.tryfood, "9.3", "Breakfast", "30 min", 1),
-        Recipe("Vennidict", "Canned Tuna Pasta", R.drawable.tryfood, "9.3", "Lunch", "30 min", 1),
-        Recipe("Vennidict", "Canned Tuna Pasta", R.drawable.tryfood, "9.3", "Lunch", "30 min", 1),
-    )
-
-    LazyVerticalGrid(
-        columns = GridCells.Fixed(2), // Set the number of columns to 2
-        contentPadding = PaddingValues(8.dp) // Optional: Add padding around the grid
+        modifier = Modifier.padding(top = 10.dp, bottom = 10.dp) // Vertical padding for the section
     ) {
-        items(recipes.size) { index ->
-            val recipe = recipes[index]
-            RecipeCard(recipe)
+        items(categories.size) { index ->
+            val category = categories[index]
+            Box(
+                modifier = Modifier
+                    .clip(RoundedCornerShape(20.dp))
+                    .background(
+                        // Use internal state for background color
+                        if (selectedCategoryState == category) Color(26, 77, 46) else Color.LightGray
+                    )
+                    .clickable {
+                        // Update internal state
+                        selectedCategoryState = category
+                        // Call the callback to notify the parent (HomeScreen)
+                        onCategorySelected(category)
+                    }
+                    .padding(horizontal = 16.dp, vertical = 8.dp) // Padding inside the box
+            ) {
+                Text(
+                    text = category,
+                    // Use internal state for text color
+                    color = if (selectedCategoryState == category) Color.White else Color(0, 0, 0, 64),
+                    fontFamily = monte // Use appropriate font
+                )
+            }
         }
     }
 }
+
+@Composable
+fun RecipeList(selectedCategory: String) {
+    // This remember block ensures filtering only happens when selectedCategory changes
+    val filteredRecipes = remember(selectedCategory) {
+        recipes.filter { recipe ->
+            // Correct filtering logic
+            selectedCategory == "All" || recipe.category.equals(selectedCategory, ignoreCase = true) // Make comparison case-insensitive
+        }
+    }
+
+    // Use LazyVerticalGrid to display the filtered recipes
+    LazyVerticalGrid(
+        columns = GridCells.Fixed(2), // Display two columns
+        contentPadding = PaddingValues(horizontal = 8.dp, vertical = 8.dp), // Padding around the grid
+        verticalArrangement = Arrangement.spacedBy(8.dp), // Spacing between rows
+        horizontalArrangement = Arrangement.spacedBy(8.dp) // Spacing between columns
+    ) {
+        items(filteredRecipes.size) { index ->
+            val recipe = filteredRecipes[index]
+            RecipeCard(recipe) // Display each recipe using RecipeCard
+        }
+    }
+}
+
 
 @Composable
 fun RecipeCard(recipe: Recipe) {
@@ -432,8 +410,3 @@ fun NavBar(selectedItem: Int, onItemSelected: (Int) -> Unit) {
         }
     }
 }
-
-
-// dagdagan nalang
-data class Recipe(val nameOfPerson: String, val name: String, val imageResId: Int, val rating: String, val category: String, val cookingTime: String, val serving: Int)
-
