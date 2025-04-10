@@ -18,6 +18,8 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Favorite
+import androidx.compose.material.icons.filled.FavoriteBorder
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Star
@@ -47,30 +49,31 @@ data class Recipe(
     val rating: String,
     val category: String,
     val cookingTime: String,
-    val serving: Int
+    val serving: Int,
+    val favorite: Boolean
 )
 
 @Composable
 fun YourRecipeScreen(navController: NavHostController) {
     val savedRecipes = remember {
         mutableStateListOf(
-            Recipe("John Doe", "Delicious Pasta", R.drawable.tryfood, "4.5", "Lunch", "30 mins", 2),
-            Recipe("Jane Smith", "Easy Salad", R.drawable.tryfood, "4.8", "Lunch", "15 mins", 1),
-            Recipe("Peter Jones", "Morning Toast", R.drawable.tryfood, "4.2", "Breakfast", "5 mins", 1),
-            Recipe("Alice Brown", "Sweet Pancakes", R.drawable.tryfood, "4.9", "Breakfast", "20 mins", 2),
-            Recipe("Charlie Green", "Roasted Chicken", R.drawable.tryfood, "4.7", "Dinner", "60 mins", 4),
-            Recipe("Diana White", "Simple Soup", R.drawable.tryfood, "4.6", "Dinner", "45 mins", 3),
-            Recipe("Eve Black", "Fruity Smoothie", R.drawable.tryfood, "4.4", "Breakfast", "10 mins", 1),
-            Recipe("Frank Gray", "Grilled Salmon", R.drawable.tryfood, "4.8", "Dinner", "25 mins", 2),
-            Recipe("Grace Blue", "Quick Noodles", R.drawable.tryfood, "4.3", "Lunch", "12 mins", 1),
-            Recipe("Henry Red", "Baked Potatoes", R.drawable.tryfood, "4.5", "Dinner", "50 mins", 3),
-            Recipe("Ivy Gold", "Berry Yogurt", R.drawable.tryfood, "4.7", "Breakfast", "8 mins", 1),
-            Recipe("Jack Silver", "Vegetable Curry", R.drawable.tryfood, "4.6", "Lunch", "40 mins", 2),
-            Recipe("Jack Silver", "Vegetable Curry", R.drawable.tryfood, "4.6", "Secret", "40 mins", 2),
+            Recipe("John Doe", "Delicious Pasta", R.drawable.tryfood, "4.5", "Lunch", "30 mins", 2, true),
+            Recipe("Jane Smith", "Easy Salad", R.drawable.tryfood, "4.8", "Lunch", "15 mins", 1, false),
+            Recipe("Peter Jones", "Morning Toast", R.drawable.tryfood, "4.2", "Breakfast", "5 mins", 1, true),
+            Recipe("Alice Brown", "Sweet Pancakes", R.drawable.tryfood, "4.9", "Breakfast", "20 mins", 2, true),
+            Recipe("Charlie Green", "Roasted Chicken", R.drawable.tryfood, "4.7", "Dinner", "60 mins", 4, false),
+            Recipe("Diana White", "Simple Soup", R.drawable.tryfood, "4.6", "Dinner", "45 mins", 3, false),
+            Recipe("Eve Black", "Fruity Smoothie", R.drawable.tryfood, "4.4", "Breakfast", "10 mins", 1, false),
+            Recipe("Frank Gray", "Grilled Salmon", R.drawable.tryfood, "4.8", "Dinner", "25 mins", 2, true),
+            Recipe("Grace Blue", "Quick Noodles", R.drawable.tryfood, "4.3", "Lunch", "12 mins", 1, false),
+            Recipe("Henry Red", "Baked Potatoes", R.drawable.tryfood, "4.5", "Dinner", "50 mins", 3, true),
+            Recipe("Ivy Gold", "Berry Yogurt", R.drawable.tryfood, "4.7", "Breakfast", "8 mins", 1, false),
+            Recipe("Jack Silver", "Vegetable Curry", R.drawable.tryfood, "4.6", "Lunch", "40 mins", 2, true),
+            Recipe("Jack Silver", "Vegetable Curry", R.drawable.tryfood, "4.6", "Secret", "40 mins", 2, false),
         )
     }
 
-    var selectedCollectionFilter by remember { mutableStateOf("All") }
+    var selectedCollectionFilter by remember { mutableStateOf("Collection") }
     var search by remember { mutableStateOf("") }
     var selectedTab by remember { mutableStateOf(1) }
     var isFabExpanded by remember { mutableStateOf(false) }
@@ -256,7 +259,7 @@ fun YourRecipeScreen(navController: NavHostController) {
                         }
                     }
                 }
-            } else {
+            } else if(selectedCollectionFilter == "All") {
                 LazyVerticalGrid(
                     columns = GridCells.Fixed(2),
                     verticalArrangement = Arrangement.spacedBy(8.dp),
@@ -272,6 +275,19 @@ fun YourRecipeScreen(navController: NavHostController) {
                     }
                 }
             }
+            else if (selectedCollectionFilter == "Favorites") {
+                LazyVerticalGrid(
+                    columns = GridCells.Fixed(2),
+                    verticalArrangement = Arrangement.spacedBy(8.dp),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    val favoriteRecipes = savedRecipes.filter { it.favorite } // This line checks the boolean
+                    items(favoriteRecipes) { recipe ->
+                        RecipeCard(recipe = recipe)
+                    }
+                }
+            }
+
         }
     }
 }
@@ -319,6 +335,7 @@ fun RecipeCategoryFolder(category: String, recipes: List<Recipe>) {
 
 @Composable
 fun SmallRecipeCard(recipe: Recipe) {
+
     Card(
         shape = RoundedCornerShape(4.dp),
         backgroundColor = Color(0xFFE0EEE0),
@@ -408,6 +425,7 @@ fun CollectionChip(text: String, isSelected: Boolean, onSelected: (String) -> Un
 
 @Composable
 fun RecipeCard(recipe: Recipe) {
+    var isFavorite by remember { mutableStateOf(recipe.favorite) }
     Card(
         shape = RoundedCornerShape(8.dp),
         backgroundColor = Color(0xFFF0FFF0),
@@ -444,8 +462,25 @@ fun RecipeCard(recipe: Recipe) {
                     .align(Alignment.BottomStart)
                     .padding(start = 8.dp, bottom = 8.dp)
             )
-            Column(
-                horizontalAlignment = Alignment.Start,
+            IconButton(
+                onClick = {
+                    isFavorite = !isFavorite
+                    // TODO: Implement logic to update the recipe's favorite status
+                    println("Favorite clicked for ${recipe.name}, new state: $isFavorite")
+                },
+                modifier = Modifier
+                    .align(Alignment.BottomEnd)
+
+            ) {
+                Icon(
+                    imageVector = if (isFavorite) Icons.Filled.Favorite else Icons.Filled.FavoriteBorder,
+                    contentDescription = "Favorite",
+                    tint = if (isFavorite) Color(178, 49, 49) else Color.Black,
+                    modifier = Modifier.size(20.dp)
+                )
+            }
+
+            Row(
                 modifier = Modifier.padding(top = 8.dp, start = 8.dp)
             ) {
                 Box(
@@ -474,32 +509,29 @@ fun RecipeCard(recipe: Recipe) {
                         color = Color.Black
                     )
                 }
-            }
-            Box(
-                modifier = Modifier
-                    .align(Alignment.TopEnd)
-                    .padding(top = 8.dp, end = 8.dp)
-                    .background(Color(0xA0FFFFFF), RoundedCornerShape(8.dp))
-                    .padding(vertical = 2.dp, horizontal = 6.dp)
-            ) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Icon(
-                        Icons.Filled.Star,
-                        contentDescription = "Rating",
-                        tint = Color(0xFFFFC107),
-                        modifier = Modifier.size(10.dp)
-                    )
-                    Text(
-                        text = recipe.rating,
-                        fontSize = 8.sp,
-                        fontFamily = monte,
-                        modifier = Modifier.padding(start = 2.dp),
-                        color = Color.Black
-                    )
+
+                Box(
+                    modifier = Modifier
+                        .background(Color(0xA0FFFFFF), RoundedCornerShape(8.dp))
+                        .padding(vertical = 2.dp, horizontal = 6.dp)
+                ) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Icon(
+                            Icons.Filled.Star,
+                            contentDescription = "Rating",
+                            tint = Color(0xFFFFC107),
+                            modifier = Modifier.size(10.dp)
+                        )
+                        Text(
+                            text = recipe.rating,
+                            fontSize = 8.sp,
+                            fontFamily = monte,
+                            modifier = Modifier.padding(start = 2.dp),
+                            color = Color.Black
+                        )
+                    }
                 }
             }
         }
     }
 }
-
-

@@ -1,20 +1,80 @@
 package com.example.myapplication.ui.theme
 
+import androidx.compose.material3.Text
 import androidx.compose.material3.Typography
 import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.sp
+import com.example.myapplication.R
+
+
+val montserratFamily = FontFamily (
+    Font(R.font.montserrat_regular, FontWeight.Normal),
+    Font(R.font.montserrat_bold, FontWeight.Bold),
+    Font(R.font.montserrat_semibold, FontWeight.SemiBold)
+)
+
+val latoFamily = FontFamily (
+    Font(R.font.lato_light, FontWeight.Light),
+    Font(R.font.lato_regular, FontWeight.Normal)
+)
 
 // Set of Material typography styles to start with
+
 val Typography = Typography(
-    bodyLarge = TextStyle(
-        fontFamily = FontFamily.Default,
+    //Mali yung parameter ko baliktad yung title tas yung headline ong di ko na palitan matrabaho
+    titleLarge = TextStyle(
+        fontFamily = montserratFamily,
+        fontWeight = FontWeight.Bold,
+        fontSize = 32.sp
+    ),
+
+    titleSmall = TextStyle(
+        fontFamily = montserratFamily,
         fontWeight = FontWeight.Normal,
-        fontSize = 16.sp,
-        lineHeight = 24.sp,
-        letterSpacing = 0.5.sp
-    )
+        fontSize = 10.sp
+            ),
+
+    titleMedium = TextStyle(
+        fontFamily = montserratFamily,
+        fontWeight = FontWeight.SemiBold,
+        fontSize = 20.sp
+    ),
+
+    headlineMedium = TextStyle(
+        fontFamily = montserratFamily,
+        fontWeight = FontWeight.SemiBold,
+        fontSize = 18.sp
+    ),
+
+    bodyMedium = TextStyle(
+        fontFamily = montserratFamily,
+        fontWeight = FontWeight.Normal,
+        fontSize = 16.sp
+    ),
+
+    bodySmall = TextStyle(
+        fontFamily = montserratFamily,
+        fontWeight = FontWeight.Normal,
+        fontSize = 12.sp
+    ),
+
+    labelSmall = TextStyle(
+        fontFamily = latoFamily,
+        fontWeight = FontWeight.Light,
+        fontSize = 12.sp
+    ),
+
+    labelMedium =  TextStyle(
+        fontFamily = latoFamily,
+        fontWeight = FontWeight.Normal,
+        fontSize = 14.sp
+            )
+
+
+
     /* Other default text styles to override
     titleLarge = TextStyle(
         fontFamily = FontFamily.Default,

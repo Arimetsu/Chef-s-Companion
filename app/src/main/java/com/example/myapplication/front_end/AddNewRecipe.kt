@@ -3,8 +3,6 @@ package com.example.myapplication.front_end
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.lazy.LazyColumn
@@ -12,10 +10,8 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.ArrowDropDown
-import androidx.compose.material.icons.filled.Check
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -24,12 +20,10 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.navigation.NavHostController
 import com.example.myapplication.R
 
@@ -46,7 +40,9 @@ fun NewRecipeScreen(navController: NavHostController) {
     var servings by remember { mutableStateOf("") }
     var preparationHours by remember { mutableStateOf("") }
     var preparationMinutes by remember { mutableStateOf("") }
-    var cookingTime by remember { mutableStateOf("") }
+    var cookingHours by remember { mutableStateOf("") }
+    var cookingMinutes by remember { mutableStateOf("") }
+    var personalNote by remember { mutableStateOf("") }
     var ingredients by remember { mutableStateOf("") }
     var instructions by remember { mutableStateOf("") }
     var selectedCollection by remember { mutableStateOf("") }
@@ -55,7 +51,7 @@ fun NewRecipeScreen(navController: NavHostController) {
 
     LazyColumn(
         modifier = Modifier
-            .fillMaxSize() // Apply background color
+            .fillMaxSize()
             .padding(16.dp)
     ) {
         item {
@@ -308,17 +304,29 @@ fun NewRecipeScreen(navController: NavHostController) {
 
         item {
             Column{
-                Text (
-                    text = "Cooking Time: ",
-                    fontFamily = monte,
-                    fontSize = 12.sp,
-                    color = Color(26, 77, 46)
-                )
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(58.dp)
+                ) {
+                    Text(
+                        text = "Preparation Time: ",
+                        fontFamily = monte,
+                        fontSize = 12.sp,
+                        color = Color(26, 77, 46)
+                    )
+                    Text(
+                        text = "Cooking Time: ",
+                        fontFamily = monte,
+                        fontSize = 12.sp,
+                        color = Color(26, 77, 46)
+                    )
+                }
 
             Row(
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
+
+                // Preparation Time
                 OutlinedTextField(
                     value = preparationHours,
                     onValueChange = { newText ->
@@ -374,7 +382,67 @@ fun NewRecipeScreen(navController: NavHostController) {
                     ),
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
                 )
+
+                //Cooking Time
+
+                OutlinedTextField(
+                    value = cookingHours,
+                    onValueChange = { newText ->
+                        val filteredText = newText.filter { it.isDigit() }
+                        if (filteredText.length <= 2) {
+                            if (filteredText.isNotBlank()) {
+                                val intValue = filteredText.toInt()
+                                if (intValue <= 24) { // Changed to 24 for hours (0-24)
+                                    cookingHours = filteredText
+                                }
+                            } else {
+                                cookingHours = "" // Allow clearing
+                            }
+                        }
+                    },
+                    label = { Text("HH", color = Color(26, 77, 46)) },
+                    modifier = Modifier.weight(1f),
+                    textStyle = TextStyle(color = Color(26, 77, 46)),
+                    colors = TextFieldDefaults.outlinedTextFieldColors(
+                        focusedBorderColor = Color(26, 77, 46),
+                        unfocusedBorderColor = Color(26, 77, 46).copy(alpha = 0.7f),
+                        focusedLabelColor = Color(26, 77, 46),
+                        unfocusedLabelColor = Color(26, 77, 46).copy(alpha = 0.7f),
+                        cursorColor = Color(26, 77, 46)
+                    ),
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
+                )
+                Text(":", color = Color(26, 77, 46), fontSize = 18.sp)
+                OutlinedTextField(
+                    value = cookingMinutes,
+                    onValueChange = { newText ->
+                        val filteredText = newText.filter { it.isDigit() }
+                        if (filteredText.length <= 2) {
+                            if (filteredText.isNotBlank()) {
+                                val intValue = filteredText.toInt()
+                                if (intValue <= 59) { // Changed to 59 for minutes (0-59)
+                                    cookingMinutes = filteredText
+                                }
+                            } else {
+                                cookingMinutes = "" // Allow clearing
+                            }
+                        }
+                    },
+                    label = { Text("MM", color = Color(26, 77, 46)) },
+                    modifier = Modifier.weight(1f),
+                    textStyle = TextStyle(color = Color(26, 77, 46)),
+                    colors = TextFieldDefaults.outlinedTextFieldColors(
+                        focusedBorderColor = Color(26, 77, 46),
+                        unfocusedBorderColor = Color(26, 77, 46).copy(alpha = 0.7f),
+                        focusedLabelColor = Color(26, 77, 46),
+                        unfocusedLabelColor = Color(26, 77, 46).copy(alpha = 0.7f),
+                        cursorColor = Color(26, 77, 46)
+                    ),
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
+                )
+
             }
+
             }
             Spacer(modifier = Modifier.height(16.dp))
         }
@@ -404,6 +472,26 @@ fun NewRecipeScreen(navController: NavHostController) {
                 value = instructions,
                 onValueChange = { instructions = it },
                 label = { Text("Instructions", color = Color(26, 77, 46)) },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(150.dp), // Adjust height as needed
+                textStyle = TextStyle(color = Color(26, 77, 46)),
+                colors = TextFieldDefaults.outlinedTextFieldColors(
+                    focusedBorderColor = Color(26, 77, 46),
+                    unfocusedBorderColor = Color(26, 77, 46).copy(alpha = 0.7f),
+                    focusedLabelColor = Color(26, 77, 46),
+                    unfocusedLabelColor = Color(26, 77, 46).copy(alpha = 0.7f),
+                    cursorColor = Color(26, 77, 46)
+                )
+            )
+            Spacer(modifier = Modifier.height(16.dp))
+        }
+
+        item {
+            OutlinedTextField(
+                value = personalNote,
+                onValueChange = { personalNote = it },
+                label = { Text("Personal Note", color = Color(26, 77, 46)) },
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(150.dp), // Adjust height as needed
