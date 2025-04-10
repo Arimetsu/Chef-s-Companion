@@ -1,5 +1,6 @@
 package com.example.myapplication.front_end
 
+import Recipe
 import android.R.attr.onClick
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -39,12 +40,12 @@ import com.example.yourapp.Screen
 fun NewCollectionScreen(onNavigateToNaming: () -> Unit, navController: NavController) {
     val recipes = remember {
         mutableStateListOf(
-            Recipe("John Doe", "Canned Tuna Pasta", R.drawable.tryfood, "9.5", "Lunch", "15", 1),
-            Recipe("Jane Smith", "Canned Tuna Pasta", R.drawable.tryfood, "9.5", "Lunch", "15", 1),
-            Recipe("Peter Jones", "Canned Tuna Pasta", R.drawable.tryfood, "9.5", "Lunch", "15", 1),
-            Recipe("Alice Brown", "Canned Tuna Pasta", R.drawable.tryfood, "9.5", "Lunch", "15", 1),
-            Recipe("Bob Green", "Canned Tuna Pasta", R.drawable.tryfood, "9.5", "Lunch", "15", 1),
-            Recipe("Charlie White", "Canned Tuna Pasta", R.drawable.tryfood, "9.5", "Lunch", "15", 1),
+            Recipe("John Doe", "Canned Tuna Pasta", R.drawable.tryfood, "9.5", "Lunch", "15", 1, true),
+            Recipe("Jane Smith", "Canned Tuna Pasta", R.drawable.tryfood, "9.5", "Lunch", "15", 1, true),
+            Recipe("Peter Jones", "Canned Tuna Pasta", R.drawable.tryfood, "9.5", "Lunch", "15", 1, false),
+            Recipe("Alice Brown", "Canned Tuna Pasta", R.drawable.tryfood, "9.5", "Lunch", "15", 1, false),
+            Recipe("Bob Green", "Canned Tuna Pasta", R.drawable.tryfood, "9.5", "Lunch", "15", 1, false),
+            Recipe("Charlie White", "Canned Tuna Pasta", R.drawable.tryfood, "9.5", "Lunch", "15", 1, true),
         )
     }
 

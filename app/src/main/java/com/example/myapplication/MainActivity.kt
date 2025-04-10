@@ -1,13 +1,10 @@
 package com.example.yourapp
 
-import InteractionSearchScreen
 import YourRecipeScreen
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.mutableStateListOf
-import androidx.lifecycle.ViewModel
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
@@ -31,7 +28,7 @@ class MainActivity : ComponentActivity() {
 fun MyApp() {
     val navController = rememberNavController()
 
-    NavHost(navController, startDestination = "addRecipe" ) {
+    NavHost(navController, startDestination = "home" ) {
         composable("signUp") { CreateAccountScreen(navController) }
         composable("emailVerification") { EmailVerificationScreen(navController) }
         composable("accountSuccessfully") { AccountSuccessfullyCreated(navController) }
@@ -55,6 +52,7 @@ fun MyApp() {
         }
         composable("addRecipe"){NewRecipeScreen(navController)}
         composable("searchRecipe") { InteractionSearchScreen(navController) }
+        composable("searchResult") { SearchResult(navController)}
     }
 }
 

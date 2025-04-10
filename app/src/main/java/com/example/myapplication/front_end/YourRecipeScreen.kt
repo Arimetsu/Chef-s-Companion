@@ -9,7 +9,6 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
@@ -52,6 +51,18 @@ data class Recipe(
     val serving: Int,
     val favorite: Boolean
 )
+
+val recipes = listOf(
+    Recipe("Veni", "Spicy Firecracker Beef", R.drawable.tryfood, "9.5", "Lunch", "1 Hour", 5, false),
+    Recipe("Vennidict", "Chicken Fajitas", R.drawable.tryfood, "9.2", "Dinner", "30 min", 1, false),
+    Recipe("Vennidict", "Canned Tuna Pasta", R.drawable.tryfood, "9.3", "Breakfast", "30 min", 1, false),
+    Recipe("Vennidict", "Canned Tuna Pasta", R.drawable.tryfood, "9.3", "Lunch", "30 min", 1, true),
+    Recipe("Vennidict", "Canned Tuna Pasta", R.drawable.tryfood, "9.3", "Lunch", "30 min", 1, true),
+    Recipe("Vennidict", "Canned Tuna Pasta", R.drawable.tryfood, "9.3", "Lunch", "30 min", 1, true),
+    Recipe("Vennidict", "Canned Tuna Pasta", R.drawable.tryfood, "9.3", "Lunch", "30 min", 1, true)
+)
+
+
 
 @Composable
 fun YourRecipeScreen(navController: NavHostController) {
