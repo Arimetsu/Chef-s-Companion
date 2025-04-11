@@ -37,7 +37,7 @@ import com.example.myapplication.front_end.latoFontLI
 import com.example.myapplication.front_end.monte
 import androidx.navigation.NavHostController
 import com.example.myapplication.front_end.NavBar
-import com.example.yourapp.Screen
+import com.example.myapplication.front_end.ScreenNavigation
 
 
 data class Recipe(
@@ -157,7 +157,7 @@ fun YourRecipeScreen(navController: NavHostController) {
                             onClick = {
                                 isFabExpanded = false
                                 // TODO: Handle "Collection" click
-                                navController.navigate(Screen.NewCollection.name)
+                                navController.navigate(ScreenNavigation.Screen.NewCollection.route)
                             },
                             shape = RoundedCornerShape(8.dp),
                             colors = ButtonDefaults.buttonColors(

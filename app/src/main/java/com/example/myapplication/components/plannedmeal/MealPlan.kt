@@ -17,7 +17,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.KeyboardArrowDown
-import androidx.compose.material.icons.materialIcon
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -27,7 +26,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.example.myapplication.R
 import com.example.myapplication.ui.theme.MyApplicationTheme
@@ -43,7 +41,9 @@ data class MealItem(
 )
 
 @Composable
-fun MealPlanContent() {
+fun MealPlanContent(
+    onNavigateToAddMealsToMealPlanScreen: () -> Unit
+) {
 
     Column(
         modifier = Modifier
@@ -77,7 +77,8 @@ fun MealPlanContent() {
             iconResource = R.drawable.breakfast_vector,
             dishes = breakfastMeals.size.toString(),
             nutritionInfo = NutritionInfo(100, 50, 50, 50),
-            meals = breakfastMeals
+            meals = breakfastMeals,
+            onNavigateToAddMealsToMealPlanScreen = onNavigateToAddMealsToMealPlanScreen
         )
 
         HorizontalDivider(
@@ -94,7 +95,8 @@ fun MealPlanContent() {
             iconResource = R.drawable.lunch_vector,
             dishes = lunchMeals.size.toString(),
             nutritionInfo = NutritionInfo(100, 50, 50, 50),
-            meals = lunchMeals
+            meals = lunchMeals,
+            onNavigateToAddMealsToMealPlanScreen = onNavigateToAddMealsToMealPlanScreen
         )
 
         HorizontalDivider(
@@ -109,7 +111,8 @@ fun MealPlanContent() {
             iconResource = R.drawable.dinner_vector,
             dishes = dinnerMeals.size.toString(),
             nutritionInfo = NutritionInfo(100, 50, 50, 50),
-            meals = dinnerMeals
+            meals = dinnerMeals,
+            onNavigateToAddMealsToMealPlanScreen = onNavigateToAddMealsToMealPlanScreen
         )
 
         HorizontalDivider(
@@ -133,7 +136,8 @@ fun MealTypeSection(
     iconResource: Int,
     dishes: String,
     nutritionInfo: NutritionInfo,
-    meals: List<MealItem>
+    meals: List<MealItem>,
+    onNavigateToAddMealsToMealPlanScreen : () -> Unit
 ) {
     var expanded by remember { mutableStateOf(false) }
     val arrowRotationDegree by animateFloatAsState(
@@ -250,16 +254,16 @@ fun MealTypeSection(
                         contentAlignment = Alignment.Center
                     ) {
                         IconButton(
-                            onClick = { /* Handle add meal */ },
+                            onClick =  onNavigateToAddMealsToMealPlanScreen ,
                             modifier = Modifier
                                 .size(48.dp)
                                 .background(Color.White, CircleShape)
-                                .border(1.dp, Color(0xFF19602A), CircleShape)
+                                .border(2.dp, MaterialTheme.colorScheme.primary, CircleShape)
                         ) {
                             Icon(
                                 imageVector = Icons.Default.Add,
                                 contentDescription = "Add meal",
-                                tint = Color(0xFF19602A)
+                                tint = MaterialTheme.colorScheme.primary
                             )
                         }
                     }

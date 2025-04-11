@@ -14,8 +14,8 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.navigation.NavController
 import com.example.myapplication.ui.theme.MyApplicationTheme
 import com.example.myapplication.ui.theme.Typography
 import ui.components.addmealplan.mealPlanAddButton
@@ -25,7 +25,7 @@ import java.time.LocalDate
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
-fun MealPlanScreen() {
+fun MealPlanScreen(navController: NavController, onAddMealsToMealPlanClick: () -> Unit) {
     var selectedDate by remember { mutableStateOf(LocalDate.now()) }
     MyApplicationTheme {
         Scaffold (
@@ -70,17 +70,10 @@ fun MealPlanScreen() {
                 }
 
                 item {
-                    MealPlanContent()
+                    MealPlanContent(onNavigateToAddMealsToMealPlanScreen = onAddMealsToMealPlanClick)
                 }
 
             }
         }
     }
-}
-
-@RequiresApi(Build.VERSION_CODES.O)
-@Preview(showBackground = true)
-@Composable
-fun MealPlanScreenContentPreview() {
-    MealPlanScreen()
 }

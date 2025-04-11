@@ -1,6 +1,5 @@
 package com.example.myapplication.front_end
 
-import android.R.attr.onClick
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -8,13 +7,11 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
-import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Check
-import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.runtime.*
@@ -32,7 +29,6 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import coil.compose.rememberImagePainter
 import com.example.myapplication.R
-import com.example.yourapp.Screen
 
 
 @Composable
@@ -61,7 +57,7 @@ fun NewCollectionScreen(onNavigateToNaming: () -> Unit, navController: NavContro
             ) {
                 // Back Button
                 IconButton(onClick = { navController.navigate("yourRecipes") {
-                    popUpTo(Screen.NewCollection.name) { inclusive = true }
+                    popUpTo(ScreenNavigation.Screen.NewCollection.route) { inclusive = true }
                 }  }) {
                     Icon(
                         Icons.Filled.ArrowBack,

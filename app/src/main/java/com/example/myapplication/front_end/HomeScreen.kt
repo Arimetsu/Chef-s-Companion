@@ -73,6 +73,12 @@ fun HomeScreen(navController: NavHostController) { // Receive NavController
                 if (it == 1) { // Index 1 corresponds to "Saved" (book icon)
                     navController.navigate("yourRecipes") // Navigate to YourRecipeScreen
                 }
+                else if (it == 2) {
+
+                }
+                else if (it == 3) {
+                    navController.navigate(ScreenNavigation.Screen.MealPlan.route)
+                }
             })
         }
     ) { paddingValues ->
@@ -235,7 +241,6 @@ fun CategorySection() {
     }
 }
 
-@Preview
 @Composable
 fun RecipeList() {
     val recipes = listOf(
