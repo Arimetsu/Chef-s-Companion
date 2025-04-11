@@ -1,6 +1,5 @@
 package com.example.yourapp
 
-import InteractionSearchScreen
 import YourRecipeScreen
 import android.os.Build
 import android.os.Bundle
@@ -11,11 +10,20 @@ import androidx.compose.runtime.Composable
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import com.example.myapplication.front_end.AccountSuccessfullyCreated
-import com.example.myapplication.front_end.CreateAccountScreen
-import com.example.myapplication.front_end.EmailVerificationScreen
-import com.example.myapplication.front_end.ForgotPasswordScreen
 import com.example.myapplication.front_end.*
+import com.example.myapplication.front_end.authentication.AccountSuccessfullyCreated
+import com.example.myapplication.front_end.authentication.CreateAccountScreen
+import com.example.myapplication.front_end.authentication.EmailVerificationScreen
+import com.example.myapplication.front_end.authentication.ForgotPasswordScreen
+import com.example.myapplication.front_end.authentication.LoginScreen
+import com.example.myapplication.front_end.authentication.NewPasswordScreen
+import com.example.myapplication.front_end.authentication.PasswordChangeSuccessfullyScreen
+import com.example.myapplication.front_end.authentication.VerificationScreen
+import com.example.myapplication.front_end.collection.NamingCollectionScreen
+import com.example.myapplication.front_end.collection.NewCollectionScreen
+import com.example.myapplication.front_end.home.HomeScreen
+import com.example.myapplication.front_end.recipe.add.NewRecipeScreen
+import com.example.myapplication.front_end.search.InteractionSearchScreen
 import ui.screens.mealplan.MealPlanScreen
 
 
@@ -58,6 +66,8 @@ fun MyApp() {
         }
         composable(ScreenNavigation.Screen.AddRecipe.route){NewRecipeScreen(navController)}
         composable(ScreenNavigation.Screen.SearchRecipe.route) { InteractionSearchScreen(navController) }
+        composable(ScreenNavigation.Screen.SearchResult.route){navController}
+
         // Meal Plan Screens
         composable(ScreenNavigation.Screen.MealPlan.route) {
             MealPlanScreen(
