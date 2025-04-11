@@ -18,10 +18,16 @@ val montserratFamily = FontFamily (
 
 val latoFamily = FontFamily (
     Font(R.font.lato_light, FontWeight.Light),
-    Font(R.font.lato_regular, FontWeight.Normal)
+    Font(R.font.lato_regular, FontWeight.Normal),
+    Font(R.font.lato_bold, FontWeight.Bold)
 )
 
 // Set of Material typography styles to start with
+
+val latoFont = FontFamily(
+    Font(R.font.lato_regular),
+    Font(R.font.lato_bold, FontWeight.Bold)
+)
 
 val Typography = Typography(
     //Mali yung parameter ko baliktad yung title tas yung headline ong di ko na palitan matrabaho
@@ -71,7 +77,8 @@ val Typography = Typography(
         fontFamily = latoFamily,
         fontWeight = FontWeight.Normal,
         fontSize = 14.sp
-            )
+            ),
+
 
 
 

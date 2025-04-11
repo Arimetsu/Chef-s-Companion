@@ -1,6 +1,5 @@
-package com.example.myapplication.front_end
+package com.example.myapplication.front_end.search
 
-import Recipe
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -40,6 +39,9 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.ui.graphics.Brush
 import coil.compose.rememberImagePainter
+import com.example.myapplication.data.Recipe
+import com.example.myapplication.front_end.home.NavBar
+import com.example.myapplication.front_end.home.monte
 import recipes
 
 
@@ -447,7 +449,7 @@ fun QueryResult(recipe: Recipe) {
                         Text(
                             text = "${recipe.nameOfPerson}",
                             fontSize = 8.sp,
-                            fontFamily = latoFontLI,
+                            style = MaterialTheme.typography.bodyMedium,
                             fontWeight = FontWeight.Bold,
                             modifier = Modifier.padding(start = 4.dp),
                             color = Color.White

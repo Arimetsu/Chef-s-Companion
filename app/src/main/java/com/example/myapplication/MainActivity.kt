@@ -8,11 +8,20 @@ import androidx.compose.runtime.Composable
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import com.example.myapplication.front_end.AccountSuccessfullyCreated
-import com.example.myapplication.front_end.CreateAccountScreen
-import com.example.myapplication.front_end.EmailVerificationScreen
-import com.example.myapplication.front_end.ForgotPasswordScreen
-import com.example.myapplication.front_end.*
+import com.example.myapplication.front_end.authentication.AccountSuccessfullyCreated
+import com.example.myapplication.front_end.authentication.CreateAccountScreen
+import com.example.myapplication.front_end.authentication.EmailVerificationScreen
+import com.example.myapplication.front_end.authentication.ForgotPasswordScreen
+import com.example.myapplication.front_end.authentication.LoginScreen
+import com.example.myapplication.front_end.authentication.NewPasswordScreen
+import com.example.myapplication.front_end.authentication.PasswordChangeSuccessfullyScreen
+import com.example.myapplication.front_end.authentication.VerificationScreen
+import com.example.myapplication.front_end.collection.NamingCollectionScreen
+import com.example.myapplication.front_end.collection.NewCollectionScreen
+import com.example.myapplication.front_end.home.HomeScreen
+import com.example.myapplication.front_end.search.InteractionSearchScreen
+import com.example.myapplication.front_end.search.SearchResult
+import com.example.myapplication.front_end.recipe.add.NewRecipeScreen
 
 
 class MainActivity : ComponentActivity() {
@@ -28,7 +37,7 @@ class MainActivity : ComponentActivity() {
 fun MyApp() {
     val navController = rememberNavController()
 
-    NavHost(navController, startDestination = "home" ) {
+    NavHost(navController, startDestination = "yourRecipes" ) {
         composable("signUp") { CreateAccountScreen(navController) }
         composable("emailVerification") { EmailVerificationScreen(navController) }
         composable("accountSuccessfully") { AccountSuccessfullyCreated(navController) }
@@ -50,9 +59,9 @@ fun MyApp() {
         composable(Screen.NamingCollection.name) {
             NamingCollectionScreen(navController = navController) // Create this composable }
         }
-        composable("addRecipe"){NewRecipeScreen(navController)}
+        composable("addRecipe"){ NewRecipeScreen(navController) }
         composable("searchRecipe") { InteractionSearchScreen(navController) }
-        composable("searchResult") { SearchResult(navController)}
+        composable("searchResult") { SearchResult(navController) }
     }
 }
 

@@ -1,6 +1,5 @@
-package com.example.myapplication.front_end
+package com.example.myapplication.front_end.home
 
-import Recipe
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.ui.unit.dp
 import androidx.compose.foundation.Image
@@ -34,6 +33,7 @@ import androidx.compose.ui.layout.ContentScale
 import coil.compose.rememberImagePainter
 import androidx.compose.ui.Alignment
 import androidx.navigation.NavHostController
+import com.example.myapplication.data.Recipe
 import recipes
 
 
@@ -130,7 +130,7 @@ fun TopSection(navController: NavHostController){
             Column(modifier = Modifier.padding(10.dp)) {
                 Text(
                     text = "Juan Lopez", // name
-                    fontFamily = latoFontLI,
+                    style = MaterialTheme.typography.bodyMedium,
                     fontSize = 20.sp,
                     fontWeight = FontWeight.Bold,
                 )
@@ -317,7 +317,7 @@ fun RecipeCard(recipe: Recipe) {
                     Text(
                         text = "${recipe.nameOfPerson}",
                         fontSize = 8.sp,
-                        fontFamily = latoFontLI,
+                        style = MaterialTheme.typography.bodyMedium,
                         fontWeight = FontWeight.Bold,
                         modifier = Modifier.padding(start = 4.dp),
                         color = Color.White

@@ -1,4 +1,4 @@
-package com.example.myapplication.front_end
+package com.example.myapplication.front_end.recipe.add
 
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
@@ -26,6 +26,7 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.navigation.NavHostController
 import com.example.myapplication.R
+import com.example.myapplication.front_end.home.monte
 
 @Composable
 fun NewRecipeScreen(navController: NavHostController) {

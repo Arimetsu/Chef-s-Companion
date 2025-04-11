@@ -22,6 +22,7 @@ import androidx.compose.material.icons.filled.FavoriteBorder
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Star
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -34,23 +35,11 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.rememberImagePainter
 import com.example.myapplication.R
-import com.example.myapplication.front_end.latoFontLI
-import com.example.myapplication.front_end.monte
+import com.example.myapplication.front_end.home.monte
 import androidx.navigation.NavHostController
-import com.example.myapplication.front_end.NavBar
+import com.example.myapplication.data.Recipe
+import com.example.myapplication.front_end.home.NavBar
 import com.example.yourapp.Screen
-
-
-data class Recipe(
-    val nameOfPerson: String,
-    val name: String,
-    val imageResId: Int,
-    val rating: String,
-    val category: String,
-    val cookingTime: String,
-    val serving: Int,
-    val favorite: Boolean
-)
 
 val recipes = listOf(
     Recipe("Veni", "Spicy Firecracker Beef", R.drawable.tryfood, "9.5", "Lunch", "1 Hour", 5, false),
@@ -502,7 +491,7 @@ fun RecipeCard(recipe: Recipe) {
                     Text(
                         text = recipe.nameOfPerson,
                         fontSize = 8.sp,
-                        fontFamily = latoFontLI,
+                        fontFamily = monte,
                         fontWeight = FontWeight.Bold,
                         color = Color.White
                     )
