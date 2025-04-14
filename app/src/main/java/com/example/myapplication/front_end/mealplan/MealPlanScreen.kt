@@ -16,6 +16,8 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
+import com.example.myapplication.front_end.ScreenNavigation
+import com.example.myapplication.front_end.home.NavBar
 import com.example.myapplication.ui.theme.MyApplicationTheme
 import com.example.myapplication.ui.theme.Typography
 import ui.components.addmealplan.mealPlanAddButton
@@ -25,12 +27,30 @@ import java.time.LocalDate
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
-fun MealPlanScreen(navController: NavController, onAddMealsToMealPlanClick: () -> Unit) {
+fun MealPlanScreen(
+    navController: NavController,
+    onAddMealsToMealPlanClick: (String) -> Unit = { mealType ->
+        navController.navigate(ScreenNavigation.Screen.AddMealsToMealPlan.createRoute(mealType)) },
+    onAddMealPlanClick: () -> Unit = { navController.navigate(ScreenNavigation.Screen.AddMealPlan.route) }
+) {
     var selectedDate by remember { mutableStateOf(LocalDate.now()) }
+    var selectedTab by remember { mutableStateOf(3) }
+
     MyApplicationTheme {
         Scaffold (
             floatingActionButton = {
-                mealPlanAddButton()
+                mealPlanAddButton(onAddMealPlanClick)
+            },
+            bottomBar = {
+                NavBar(selectedItem = selectedTab, onItemSelected = {
+                    selectedTab = it
+                    if (it == 0) { //home
+                        navController.navigate(ScreenNavigation.Screen.Home.route)
+                    }
+                    else if (it == 1) { //your recipe
+                        navController.navigate(ScreenNavigation.Screen.YourRecipes.route)
+                    }
+                })
             }
         ) { innerPadding ->
             LazyColumn(
@@ -70,9 +90,13 @@ fun MealPlanScreen(navController: NavController, onAddMealsToMealPlanClick: () -
                 }
 
                 item {
-                    MealPlanContent(onNavigateToAddMealsToMealPlanScreen = onAddMealsToMealPlanClick)
+                    MealPlanContent(
+                        onNavigateToAddMealsToMealPlanScreen = { mealType ->
+                            // Pass the mealType to navigate
+                            onAddMealsToMealPlanClick(mealType)
+                        }
+                    )
                 }
-
             }
         }
     }

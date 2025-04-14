@@ -42,7 +42,7 @@ data class MealItem(
 
 @Composable
 fun MealPlanContent(
-    onNavigateToAddMealsToMealPlanScreen: () -> Unit
+    onNavigateToAddMealsToMealPlanScreen: (String) -> Unit
 ) {
 
     Column(
@@ -78,7 +78,7 @@ fun MealPlanContent(
             dishes = breakfastMeals.size.toString(),
             nutritionInfo = NutritionInfo(100, 50, 50, 50),
             meals = breakfastMeals,
-            onNavigateToAddMealsToMealPlanScreen = onNavigateToAddMealsToMealPlanScreen
+            onNavigateToAddMealsToMealPlanScreen =  onNavigateToAddMealsToMealPlanScreen
         )
 
         HorizontalDivider(
@@ -96,7 +96,7 @@ fun MealPlanContent(
             dishes = lunchMeals.size.toString(),
             nutritionInfo = NutritionInfo(100, 50, 50, 50),
             meals = lunchMeals,
-            onNavigateToAddMealsToMealPlanScreen = onNavigateToAddMealsToMealPlanScreen
+            onNavigateToAddMealsToMealPlanScreen =  onNavigateToAddMealsToMealPlanScreen
         )
 
         HorizontalDivider(
@@ -112,7 +112,7 @@ fun MealPlanContent(
             dishes = dinnerMeals.size.toString(),
             nutritionInfo = NutritionInfo(100, 50, 50, 50),
             meals = dinnerMeals,
-            onNavigateToAddMealsToMealPlanScreen = onNavigateToAddMealsToMealPlanScreen
+            onNavigateToAddMealsToMealPlanScreen =  onNavigateToAddMealsToMealPlanScreen
         )
 
         HorizontalDivider(
@@ -137,7 +137,7 @@ fun MealTypeSection(
     dishes: String,
     nutritionInfo: NutritionInfo,
     meals: List<MealItem>,
-    onNavigateToAddMealsToMealPlanScreen : () -> Unit
+    onNavigateToAddMealsToMealPlanScreen : (String) -> Unit
 ) {
     var expanded by remember { mutableStateOf(false) }
     val arrowRotationDegree by animateFloatAsState(
@@ -254,7 +254,7 @@ fun MealTypeSection(
                         contentAlignment = Alignment.Center
                     ) {
                         IconButton(
-                            onClick =  onNavigateToAddMealsToMealPlanScreen ,
+                            onClick =  {onNavigateToAddMealsToMealPlanScreen(mealType)} ,
                             modifier = Modifier
                                 .size(48.dp)
                                 .background(Color.White, CircleShape)

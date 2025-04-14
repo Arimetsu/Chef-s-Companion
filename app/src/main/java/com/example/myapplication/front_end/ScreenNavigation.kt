@@ -23,7 +23,10 @@ sealed class ScreenNavigation(val Route: String) {
 
         // Meal Plan
         object MealPlan : Screen("mealPlan")
-        object AddMealsToMealPlan : Screen("addMealsToMealPlan")
+        data object AddMealsToMealPlan : Screen("addMealsToMealPlan/{mealType}") {
+            fun createRoute(mealType: String) = "addMealsToMealPlan/$mealType"
+        }
+        object AddMealPlan : Screen("addMealPlan")
     }
 
 }

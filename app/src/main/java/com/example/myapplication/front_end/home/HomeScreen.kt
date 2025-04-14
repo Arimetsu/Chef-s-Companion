@@ -34,6 +34,7 @@ import coil.compose.rememberImagePainter
 import androidx.compose.ui.Alignment
 import androidx.navigation.NavHostController
 import com.example.myapplication.data.Recipe
+import com.example.myapplication.front_end.ScreenNavigation
 import recipes
 
 
@@ -59,7 +60,7 @@ fun HomeScreen(navController: NavHostController) { // Receive NavController
             NavBar(selectedItem = selectedTab, onItemSelected = {
                 selectedTab = it
                 if (it == 1) { // Index 1 corresponds to "Saved" (book icon)
-                    navController.navigate("yourRecipes") // Navigate to YourRecipeScreen
+                    navController.navigate(ScreenNavigation.Screen.YourRecipes.route)
                 }
                 else if (it == 2) {
 

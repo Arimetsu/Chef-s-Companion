@@ -107,7 +107,10 @@ fun YourRecipeScreen(navController: NavHostController) {
             NavBar(selectedItem = selectedTab, onItemSelected = {
                 selectedTab = it
                 if (it == 0) { // Index 0 corresponds to "Home"
-                    navController.navigate("home") // Navigate back to HomeScreen
+                    navController.navigate(ScreenNavigation.Screen.Home.route)
+                }
+                else if (it == 3) {
+                    navController.navigate(ScreenNavigation.Screen.MealPlan.route)
                 }
             })
         },floatingActionButtonPosition = FabPosition.End, // Ensure FAB is at the end (right)

@@ -7,9 +7,11 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.annotation.RequiresApi
 import androidx.compose.runtime.Composable
+import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.navArgument
 import com.example.myapplication.front_end.*
 import com.example.myapplication.front_end.authentication.AccountSuccessfullyCreated
 import com.example.myapplication.front_end.authentication.CreateAccountScreen
@@ -24,7 +26,9 @@ import com.example.myapplication.front_end.collection.NewCollectionScreen
 import com.example.myapplication.front_end.home.HomeScreen
 import com.example.myapplication.front_end.recipe.add.NewRecipeScreen
 import com.example.myapplication.front_end.search.InteractionSearchScreen
+import ui.screens.mealplan.AddMealsToMealPlanScreen
 import ui.screens.mealplan.MealPlanScreen
+import ui.screens.mealplan.addMealPlanScreen
 
 
 class MainActivity : ComponentActivity() {
@@ -72,14 +76,21 @@ fun MyApp() {
         composable(ScreenNavigation.Screen.MealPlan.route) {
             MealPlanScreen(
                 navController,
-                onAddMealsToMealPlanClick = {
-                    navController.navigate(ScreenNavigation.Screen.AddMealsToMealPlan.route)
+                onAddMealsToMealPlanClick = { mealType ->
+                    navController.navigate(ScreenNavigation.Screen.AddMealsToMealPlan.createRoute(mealType))
                 }
             )
         }
-        composable(ScreenNavigation.Screen.AddMealsToMealPlan.route) {
-            { }
+        composable(
+            ScreenNavigation.Screen.AddMealsToMealPlan.route,  // "addMealsToMealPlan/{mealType}"
+            arguments = listOf(navArgument("mealType") { type = NavType.StringType })
+        ) { backStackEntry ->
+            val mealType = backStackEntry.arguments?.getString("mealType") ?: "Unknown"
+            AddMealsToMealPlanScreen(navController, mealType)
         }
+
+        composable(ScreenNavigation.Screen.AddMealPlan.route) {
+            addMealPlanScreen(navController, onAddMealPlanClick = {navController.navigate(ScreenNavigation.Screen.MealPlan.route)})}
     }
 }
 

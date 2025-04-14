@@ -14,13 +14,15 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.navigation.NavController
+import com.example.myapplication.front_end.ScreenNavigation
 import com.example.myapplication.ui.theme.MyApplicationTheme
 
 @Composable
-fun mealPlanAddButton(){
+fun mealPlanAddButton(onAddMealPlanClick: () -> Unit){
     MyApplicationTheme {
         IconButton(
-            onClick = { /* Handle add meal */ },
+            onClick = onAddMealPlanClick,
             modifier = Modifier
                 .size(69.dp)
                 .background(Color.White, CircleShape)
