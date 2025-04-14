@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "312772241384",
+    "project_id": "chef-s-companion",
+    "storage_bucket": "chef-s-companion.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:312772241384:android:cce729398ea74c865c665d",
+        "android_client_info": {
+          "package_name": "com.example.myapplication"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyByJJu_PuJCA1rygW2_HtoU6k818_oyXX4"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
