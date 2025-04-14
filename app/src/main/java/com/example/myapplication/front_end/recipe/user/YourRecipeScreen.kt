@@ -38,8 +38,8 @@ import com.example.myapplication.R
 import com.example.myapplication.front_end.home.monte
 import androidx.navigation.NavHostController
 import com.example.myapplication.data.Recipe
+import com.example.myapplication.front_end.ScreenNavigation
 import com.example.myapplication.front_end.home.NavBar
-import com.example.yourapp.Screen
 
 val recipes = listOf(
     Recipe("Veni", "Spicy Firecracker Beef", R.drawable.tryfood, "9.5", "Lunch", "1 Hour", 5, false),
@@ -107,7 +107,10 @@ fun YourRecipeScreen(navController: NavHostController) {
             NavBar(selectedItem = selectedTab, onItemSelected = {
                 selectedTab = it
                 if (it == 0) { // Index 0 corresponds to "Home"
-                    navController.navigate("home") // Navigate back to HomeScreen
+                    navController.navigate(ScreenNavigation.Screen.Home.route)
+                }
+                else if (it == 3) {
+                    navController.navigate(ScreenNavigation.Screen.MealPlan.route)
                 }
             })
         },floatingActionButtonPosition = FabPosition.End, // Ensure FAB is at the end (right)
@@ -160,7 +163,7 @@ fun YourRecipeScreen(navController: NavHostController) {
                             onClick = {
                                 isFabExpanded = false
                                 // TODO: Handle "Collection" click
-                                navController.navigate(Screen.NewCollection.name)
+                                navController.navigate(ScreenNavigation.Screen.NewCollection.route)
                             },
                             shape = RoundedCornerShape(8.dp),
                             colors = ButtonDefaults.buttonColors(

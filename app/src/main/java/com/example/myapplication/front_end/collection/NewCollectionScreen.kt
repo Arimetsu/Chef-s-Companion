@@ -14,6 +14,7 @@ import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Star
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -23,14 +24,18 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
+import androidx.navigation.compose.rememberNavController
 import coil.compose.rememberImagePainter
 import com.example.myapplication.R
 import com.example.myapplication.data.Recipe
+import com.example.myapplication.front_end.ScreenNavigation
 import com.example.myapplication.front_end.home.monte
-import com.example.yourapp.Screen
+import com.example.myapplication.ui.theme.MyApplicationTheme
+import com.example.myapplication.ui.theme.latoFont
 
 
 @Composable
@@ -59,7 +64,7 @@ fun NewCollectionScreen(onNavigateToNaming: () -> Unit, navController: NavContro
             ) {
                 // Back Button
                 IconButton(onClick = { navController.navigate("yourRecipes") {
-                    popUpTo(Screen.NewCollection.name) { inclusive = true }
+                    popUpTo(ScreenNavigation.Screen.NewCollection.route) { inclusive = true }
                 }  }) {
                     Icon(
                         Icons.Filled.ArrowBack,
@@ -205,7 +210,7 @@ fun RecipeItem(
                     Text(
                         text = recipe.nameOfPerson,
                         fontSize = 8.sp,
-                        style = androidx.compose.material3.MaterialTheme.typography.bodyMedium,
+                        fontFamily = latoFont,
                         fontWeight = FontWeight.Bold,
                         color = Color.White
                     )
@@ -273,7 +278,7 @@ fun SelectedRecipesBar(selectedRecipes: List<Recipe>) {
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .background(MaterialTheme.colors.surface)
+            .background(MaterialTheme.colorScheme.primaryContainer)
             .padding(vertical = 8.dp)
     ) {
         Text(
@@ -365,5 +370,15 @@ fun NamingCollectionScreen(navController: NavController) {
     }
 }
 
+@Preview(showBackground = true)
+@Composable
+fun NewCollectionScreenPreview() {
+    MyApplicationTheme {
+        NewCollectionScreen(
+            onNavigateToNaming = { /* Do nothing for preview */ },
+            navController = rememberNavController()
+        )
+    }
+}
 
 
