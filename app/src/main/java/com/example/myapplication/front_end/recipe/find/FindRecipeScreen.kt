@@ -6,7 +6,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.runtime.*
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
@@ -34,7 +33,13 @@ import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.foundation.layout.padding
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.graphics.SolidColor
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.style.TextAlign
+import com.example.myapplication.data.RecipePreferences
+import com.example.myapplication.front_end.home.monte
+import com.example.myapplication.front_end.recipe.detail.MutedGray
 
 
 val DarkGreen = Color(0xFF1B5E20) // Button color
@@ -63,13 +68,30 @@ fun FindRecipeScreen(
         topBar = {
             TopAppBar(
                 title = {
-                    Column {
-                        Text("Find Recipe", fontWeight = FontWeight.Bold)
-                        Text(
-                            "AI Generated Recipe",
-                            style = MaterialTheme.typography.bodySmall,
-                            color = Color.Gray
-                        )
+                    Box(
+                        modifier = Modifier.fillMaxWidth(),
+                        contentAlignment = Alignment.Center // Center the Text inside
+                    ) {
+                        Column(
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                            modifier = Modifier.padding(end = 30.dp)
+                        ) {
+                            Text(
+                                text = "Find Recipe",
+                                style = TextStyle(
+                                    fontSize = 32.sp,
+                                    fontFamily = monte,
+                                    fontWeight = FontWeight(700),
+                                    color = Color(0xFF1A4D2E),
+                                )
+                            )
+                            Text(
+                                "AI Generated Recipe",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MutedGray
+                            )
+                        }
+
                     }
                 },
                 navigationIcon = {
@@ -302,15 +324,7 @@ fun ChipSelectionGroup(
     }
 }
 
-// Data class to hold the collected preferences
-data class RecipePreferences(
-    val ingredients: List<String>,
-    val serving: Int?,
-    val prepTime: String,
-    val cookingTime: String,
-    val cuisines: Set<String>,
-    val categories: Set<String>
-)
+
 
 
 @Preview(showBackground = true)

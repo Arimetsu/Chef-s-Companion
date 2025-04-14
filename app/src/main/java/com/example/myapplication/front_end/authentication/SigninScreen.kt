@@ -2,6 +2,7 @@ package com.example.myapplication.front_end.authentication
 
 import android.util.Patterns
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -23,19 +24,28 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
+import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.compose.rememberNavController
 import com.example.myapplication.R
 import com.example.myapplication.ui.theme.latoFont
+import com.example.myapplication.viewModel.AuthViewModel
+import com.google.firebase.auth.EmailAuthProvider
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.tasks.await
 
 @Composable
-fun CreateAccountScreen(navController: NavController) {
+fun CreateAccountScreen(navController: NavController,
+                        viewModel: AuthViewModel = viewModel()) {
+
     var username by rememberSaveable { mutableStateOf("") }
     var email by rememberSaveable { mutableStateOf("") }
     var password by rememberSaveable { mutableStateOf("") }
@@ -51,7 +61,27 @@ fun CreateAccountScreen(navController: NavController) {
     var confirmPasswordError by rememberSaveable { mutableStateOf<String?>(null) }
     var termsError by rememberSaveable { mutableStateOf<String?>(null) } // For checkbox error
 
+    val authState by viewModel.authState.collectAsState()
+
     var showModal by remember { mutableStateOf(false) }
+
+    LaunchedEffect(authState) {
+        when (authState) {
+            is AuthViewModel.AuthState.Success -> {
+                // Navigate to verification screen on success
+                navController.navigate("emailVerification")
+                viewModel.resetAuthStateToIdle()
+            }
+            is AuthViewModel.AuthState.Error -> {
+                // Show error message
+                val error = (authState as AuthViewModel.AuthState.Error).message
+                // You can show a snackbar or set specific field errors
+                // For simplicity, we'll set it to email error
+                emailError = error
+            }
+            else -> {}
+        }
+    }
 
     Column(
         modifier = Modifier
@@ -310,9 +340,7 @@ fun CreateAccountScreen(navController: NavController) {
 
                 if (!hasError) {
                     // TODO: Call API to create account
-                    println("Creating account...")
-                    // On Success:
-                    navController.navigate("emailVerification") // Navigate to next step
+                    viewModel.registerUser(username, email, password)
                 }
             },
             modifier = Modifier
@@ -330,6 +358,21 @@ fun CreateAccountScreen(navController: NavController) {
                 )
             )
         }
+
+        // Show loading state
+        if (authState is AuthViewModel.AuthState.Loading) {
+            Dialog(onDismissRequest = {}) {
+                Box(
+                    contentAlignment = Alignment.Center,
+                    modifier = Modifier
+                        .size(100.dp)
+                        .background(Color.White, shape = RoundedCornerShape(8.dp))
+                ) {
+                    CircularProgressIndicator(color = Color(26, 77, 46))
+                }
+            }
+        }
+
 
         Spacer(modifier = Modifier.height(16.dp))
 
@@ -466,171 +509,135 @@ fun TermsAndConditionsDialog(onDismiss: () -> Unit) {
 
 // --- Email Verification Screen (Refined) ---
 @Composable
-fun EmailVerificationScreen(navController: NavController) {
-    var code by rememberSaveable { mutableStateOf("") }
-    var codeError by rememberSaveable { mutableStateOf<String?>(null) }
-    var isResendEnabled by rememberSaveable { mutableStateOf(true) }
-    var timer by rememberSaveable { mutableStateOf(0) }
+fun EmailVerificationScreen(
+    navController: NavController,
+    viewModel: AuthViewModel = viewModel()
+) {
+    // Timer state for resend button cooldown
+    var timeLeft by remember { mutableStateOf(0) } // 0 means ready or finished cooldown
+    var canResend by remember { mutableStateOf(true) }
 
-    LaunchedEffect(key1 = isResendEnabled) {
-        if (!isResendEnabled) {
-            // TODO: Add backend call here to actually resend the code
-            println("Resending verification code...")
-            while (timer > 0) {
-                delay(1000L)
-                timer -= 1
+    val coroutineScope = rememberCoroutineScope() // Scope for background tasks
+
+    // --- Effect to Periodically Check Verification Status ---
+    LaunchedEffect(Unit) {
+        while (true) { // Loop indefinitely until navigated away
+            // *** CRITICAL FIX: Use the reliable suspend function ***
+            val isVerifiedNow = viewModel.isCurrentUserEmailVerified()
+
+            if (isVerifiedNow) {
+                println("Verification detected!") // Log for debugging
+
+                // Update Firestore status in the background (doesn't block UI)
+                coroutineScope.launch {
+                    viewModel.updateUserVerificationStatusInDb()
+                }
+
+                // *** CRITICAL FIX: Navigate Immediately ***
+                navController.navigate("accountSuccessfully") { // Replace "home" with your actual home route
+                    // Clear the back stack up to the start destination
+                    popUpTo(navController.graph.findStartDestination().id) {
+                        inclusive = true
+                    }
+                    // Prevent multiple copies if user rapidly clicks verify? (Optional)
+                    launchSingleTop = true
+                }
+                break // Exit the loop after navigating
             }
-            isResendEnabled = true
+
+            // Wait before the next check
+            delay(5000L) // Check every 5 seconds
         }
     }
 
+    // --- Effect for Resend Button Cooldown Timer ---
+    LaunchedEffect(canResend) {
+        if (!canResend) { // If button was just clicked
+            timeLeft = 60 // Start countdown
+            while (timeLeft > 0) {
+                delay(1000L)
+                timeLeft--
+            }
+            canResend = true // Re-enable button after cooldown
+        }
+    }
+
+    // --- UI ---
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .padding(32.dp)
-            .verticalScroll(rememberScrollState()),
-        verticalArrangement = Arrangement.Center,
-        horizontalAlignment = Alignment.CenterHorizontally
+            .padding(24.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center
     ) {
-        Box(
-            modifier = Modifier
-                .size(75.dp)
-                .border(1.dp, Color(26, 77, 46), CircleShape),
-            contentAlignment = Alignment.Center
-        ) {
-            Image(
-                painter = painterResource(R.drawable.logo),
-                contentDescription = "App Logo",
-                modifier = Modifier.size(60.dp)
-            )
-        }
-        Spacer(modifier = Modifier.height(16.dp))
+        Image(
+            painter = painterResource(R.drawable.logo), // Use your logo
+            contentDescription = "Email Verification Icon",
+            modifier = Modifier.size(80.dp)
+        )
+
+        Spacer(modifier = Modifier.height(24.dp))
+
         Text(
-            text = "Email Verification",
-            style = MaterialTheme.typography.headlineMedium.copy(
-                fontSize = 30.sp, // Adjusted size slightly
-                fontWeight = FontWeight.Bold,
-                fontFamily = latoFont
-            )
+            text = "Verify Your Email",
+            style = MaterialTheme.typography.headlineMedium,
+            textAlign = TextAlign.Center
         )
+
         Spacer(modifier = Modifier.height(16.dp))
+
+        // Safely get email
+        val userEmail = try { viewModel.getCurrentUserEmail() } catch (e: Exception) { "your email" }
         Text(
-            text = "Enter the code we have sent to your email address.",
-            style = MaterialTheme.typography.bodyMedium.copy(
-                fontSize = 12.sp, // Adjusted size
-                fontFamily = latoFont,
-                textAlign = androidx.compose.ui.text.style.TextAlign.Center // Center text
-            )
+            text = "We've sent a verification email to $userEmail.",
+            style = MaterialTheme.typography.bodyLarge,
+            textAlign = TextAlign.Center
         )
 
-        Spacer(modifier = Modifier.height(40.dp))
+        Spacer(modifier = Modifier.height(8.dp))
 
-        // --- Code Input ---
-        OutlinedTextField(
-            value = code,
-            onValueChange = { newCode ->
-                if (newCode.all { it.isDigit() } && newCode.length <= 6) { // Assuming 6 digits
-                    code = newCode
-                    if (codeError != null) codeError = null
-                }
-            },
-            label = { Text("Verification Code") },
-            placeholder = { Text("XXXXXX") },
-            modifier = Modifier.fillMaxWidth(),
-            textStyle = MaterialTheme.typography.bodyLarge.copy(
-                fontFamily = latoFont,
-                letterSpacing = 4.sp
-            ),
-            shape = RoundedCornerShape(10.dp),
-            isError = codeError != null,
-            singleLine = true,
-            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.NumberPassword),
-            supportingText = {
-                if (codeError != null) Text(codeError!!, color = Color.Red)
-            },
-            colors = OutlinedTextFieldDefaults.colors(
-                focusedBorderColor = Color(26, 77, 46),
-                unfocusedBorderColor = Color.Gray,
-                errorBorderColor = Color.Red
-            )
+        Text(
+            text = "Please check your inbox (and spam folder!) and click the link inside to activate your account.",
+            style = MaterialTheme.typography.bodyMedium,
+            textAlign = TextAlign.Center
         )
 
-        Spacer(modifier = Modifier.height(16.dp))
+        Spacer(modifier = Modifier.height(32.dp))
 
-        // --- Resend Row ---
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.Center
-        ) {
-            Text(
-                text = "Didn't receive code? ",
-                style = MaterialTheme.typography.bodySmall.copy(fontFamily = latoFont)
-            )
-            if (isResendEnabled) {
-                Text(
-                    text = "Resend",
-                    color = Color(26, 77, 46),
-                    style = MaterialTheme.typography.bodySmall.copy(
-                        fontWeight = FontWeight.Bold,
-                        textDecoration = TextDecoration.Underline,
-                        fontFamily = latoFont,
-                        color = Color(26, 77, 46)
-                    ),
-                    modifier = Modifier.clickable {
-                        isResendEnabled = false
-                        timer = 180
-                        // TODO: Trigger backend call in LaunchedEffect
-                    }
-                )
-            } else {
-                val minutes = timer / 60
-                val seconds = timer % 60
-                val formattedTime = "%d:%02d".format(minutes, seconds)
-                Text(
-                    text = "Resend in $formattedTime",
-                    color = Color.Gray,
-                    style = MaterialTheme.typography.bodySmall.copy(fontFamily = latoFont)
-                )
-            }
-        }
-
-        Spacer(modifier = Modifier.weight(1f))
-
-        // --- Verify Button ---
+        // Resend Button - No longer needs the `if(isVerified)` check around it
         Button(
             onClick = {
-                codeError = if (code.length < 6) { // Basic length check
-                    "Code must be 6 digits."
-                } else {
-                    null
-                }
-                if (codeError == null) {
-                    // TODO: Call API to verify code
-                    println("Verifying code: $code")
-                    // On success:
-                    navController.navigate("accountSuccessfully") {
-                        // popUpTo(navController.graph.findStartDestination().id) { inclusive = true }
-                    }
-                    // On failure:
-                    // codeError = "Incorrect code."
+                if (canResend) {
+                    // *** Use the correct ViewModel function ***
+                    viewModel.sendVerificationEmailAgain()
+                    canResend = false // Start cooldown
                 }
             },
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(50.dp),
-            colors = ButtonDefaults.buttonColors(containerColor = Color(26, 77, 46)),
-            shape = RoundedCornerShape(50.dp)
+            enabled = canResend,
+            modifier = Modifier.fillMaxWidth()
         ) {
-            Text(
-                text = "Verify",
-                style = MaterialTheme.typography.labelLarge.copy(
-                    fontSize = 18.sp,
-                    color = Color.White,
-                    fontFamily = latoFont
-                )
-            )
+            Text(if (canResend) "Resend Verification Email" else "Resend available in $timeLeft")
         }
+
         Spacer(modifier = Modifier.height(16.dp))
+
+        // Go Back Button (logs out user)
+        TextButton(onClick = {
+            viewModel.logout() // Ensure user is logged out if they go back
+            // Navigate back to the previous screen (likely login or signup)
+            if (navController.previousBackStackEntry != null) {
+                navController.popBackStack()
+            } else {
+                // Handle case where there's no screen to pop back to,
+                // maybe navigate explicitly to login?
+                // navController.navigate("login") { popUpTo(0) }
+            }
+        }) {
+            Text("Go Back")
+        }
+
+        // Observe the ViewModel state for feedback (e.g., errors on resend)
+
     }
 }
 

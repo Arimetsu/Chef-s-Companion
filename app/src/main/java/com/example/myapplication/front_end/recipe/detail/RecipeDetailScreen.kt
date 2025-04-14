@@ -7,6 +7,7 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.Text
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Favorite
@@ -20,6 +21,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
@@ -29,6 +31,7 @@ import com.example.myapplication.R
 import com.example.myapplication.data.IngredientItem
 import com.example.myapplication.data.NutritionItem
 import com.example.myapplication.data.RecipeDetail
+import com.example.myapplication.front_end.home.monte
 import com.example.myapplication.front_end.recipe.find.DarkGreen
 import com.example.myapplication.front_end.recipe.find.LightGreenBackground
 
@@ -55,13 +58,30 @@ fun RecipeDetailScreen(
         topBar = {
             TopAppBar(
                 title = {
-                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                        Text("Gen Recipe", fontWeight = FontWeight.Bold, color = DarkGreen)
-                        Text(
-                            "AI Generated Recipe",
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MutedGray
-                        )
+                        Box(
+                            modifier = Modifier.fillMaxWidth(),
+                            contentAlignment = Alignment.Center // Center the Text inside
+                        ) {
+                            Column(
+                                horizontalAlignment = Alignment.CenterHorizontally
+                            ) {
+                            Text(
+                                text = "Gen Recipe",
+                                style = TextStyle(
+                                    fontSize = 32.sp,
+                                    fontFamily = monte,
+                                    fontWeight = FontWeight(700),
+                                    color = Color(0xFF1A4D2E),
+                                    textAlign = TextAlign.Center
+                                )
+                            )
+                            Text(
+                                "AI Generated Recipe",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MutedGray
+                            )
+                        }
+
                     }
                 },
                 navigationIcon = {
@@ -70,8 +90,7 @@ fun RecipeDetailScreen(
                     }
                 },
                 actions = { Spacer(Modifier.width(48.dp))}, // Balance nav icon for centering
-                colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.Transparent),
-                modifier = Modifier.fillMaxWidth()
+                colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.White),
             )
         },
         // --- Floating Save Button ---
@@ -96,9 +115,11 @@ fun RecipeDetailScreen(
         LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(paddingValues) // Apply scaffold padding
+                .padding(paddingValues)// Apply scaffold padding
+                .background(color = Color.White)
                 .padding(horizontal = 16.dp), // Add horizontal padding for content
-            verticalArrangement = Arrangement.spacedBy(16.dp) // Space between sections
+            verticalArrangement = Arrangement.spacedBy(16.dp), // Space between sections
+
         ) {
 
             // --- Header Section ---
@@ -248,7 +269,8 @@ fun RecipeTimeServingInfo(
             value = cookingTime,
             iconPainter = painterResource(R.drawable.alarm)
         )
-        InfoColumn(label = "Preparation Time", value = prepTime)
+        InfoColumn(label = "Preparation Time", value = prepTime,
+            iconPainter = painterResource(R.drawable.restaurant))
     }
 }
 
@@ -438,7 +460,7 @@ fun RecipeDetailScreenPreview() {
     val sampleRecipe = RecipeDetail(
         id = "tuna123",
         title = "Canned Tuna Pasta",
-        tags = listOf("Dinner", "Italian", "Quick"),
+        tags = listOf("Dinner", "Italian"),
         isFavorite = true,
         isBookmarked = false,
         servingSize = 1,
