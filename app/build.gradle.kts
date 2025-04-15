@@ -84,6 +84,7 @@ dependencies {
     implementation("androidx.navigation:navigation-compose:2.7.5")
     implementation("androidx.compose.ui:ui-text:1.5.0")
     implementation ("androidx.compose.foundation:foundation:1.6.0")
+    implementation("io.coil-kt:coil-compose:2.6.0")
 
     // Import the Firebase BoM
     implementation (platform("com.google.firebase:firebase-bom:32.7.0"))
@@ -91,5 +92,8 @@ dependencies {
     // Add Firebase dependencies without version numbers
 
     implementation ("com.google.firebase:firebase-firestore:25.0.0")
+
+    // Google Log in
+    implementation("com.google.android.gms:play-services-auth:21.1.1") // Check for latest version
 
 }

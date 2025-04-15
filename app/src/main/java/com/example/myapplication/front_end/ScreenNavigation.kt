@@ -15,6 +15,7 @@ sealed class ScreenNavigation(val Route: String) {
         // Main App
         object Home : Screen("home")
         object YourRecipes : Screen("yourRecipes")
+        object Notification : Screen("Notification")
         object NewCollection : Screen("newCollection")
         object NamingCollection : Screen("namingCollection")
         object AddRecipe : Screen("addRecipe")

@@ -24,6 +24,7 @@ import com.example.myapplication.front_end.authentication.VerificationScreen
 import com.example.myapplication.front_end.collection.NamingCollectionScreen
 import com.example.myapplication.front_end.collection.NewCollectionScreen
 import com.example.myapplication.front_end.home.HomeScreen
+import com.example.myapplication.front_end.home.NotificationScreen
 import com.example.myapplication.front_end.recipe.add.NewRecipeScreen
 import com.example.myapplication.front_end.search.InteractionSearchScreen
 import ui.screens.mealplan.AddMealsToMealPlanScreen
@@ -46,7 +47,7 @@ class MainActivity : ComponentActivity() {
 fun MyApp() {
     val navController = rememberNavController()
 
-    NavHost(navController, startDestination = ScreenNavigation.Screen.Home.route ) {
+    NavHost(navController, startDestination = ScreenNavigation.Screen.AddRecipe.route ) {
         composable(ScreenNavigation.Screen.SignUp.route) { CreateAccountScreen(navController) }
         composable(ScreenNavigation.Screen.EmailVerification.route) { EmailVerificationScreen(navController) }
         composable(ScreenNavigation.Screen.AccountSuccessfullyCreated.route) { AccountSuccessfullyCreated(navController) }
@@ -56,6 +57,7 @@ fun MyApp() {
         composable(ScreenNavigation.Screen.NewPassword.route) { NewPasswordScreen(navController) }
         composable(ScreenNavigation.Screen.PasswordChanged.route) { PasswordChangeSuccessfullyScreen(navController) }
         composable(ScreenNavigation.Screen.Home.route) { HomeScreen(navController) } // Pass navController
+        composable(ScreenNavigation.Screen.Notification.route) { NotificationScreen(navController) }
         composable(ScreenNavigation.Screen.YourRecipes.route) { YourRecipeScreen(navController) } // Pass navController
         composable(ScreenNavigation.Screen.NewCollection.route) {
             NewCollectionScreen(

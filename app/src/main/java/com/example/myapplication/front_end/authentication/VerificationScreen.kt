@@ -20,8 +20,6 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import kotlinx.coroutines.delay
 
-// Assume Screen sealed class is defined elsewhere
-// sealed class Screen(val route: String) { ... object NewPassword: Screen("newPassword") ... }
 
 
 @Composable
