@@ -68,6 +68,9 @@ fun HomeScreen(navController: NavHostController) { // Receive NavController
                 else if (it == 3) {
                     navController.navigate(ScreenNavigation.Screen.MealPlan.route)
                 }
+                else if (it == 4) {
+                    navController.navigate(ScreenNavigation.Screen.UserProfile.route)
+                }
             })
         }
     ) { paddingValues ->
