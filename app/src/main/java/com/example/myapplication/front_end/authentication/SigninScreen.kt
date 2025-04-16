@@ -1,6 +1,10 @@
 package com.example.myapplication.front_end.authentication
 
+import android.app.Activity
 import android.util.Patterns
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.ActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -19,6 +23,8 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
@@ -26,18 +32,21 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDecoration
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import androidx.navigation.NavGraph.Companion.findStartDestination
-import androidx.navigation.compose.rememberNavController
 import com.example.myapplication.R
+import com.example.myapplication.front_end.ScreenNavigation
 import com.example.myapplication.ui.theme.latoFont
 import com.example.myapplication.viewModel.AuthViewModel
-import com.google.firebase.auth.EmailAuthProvider
+import com.google.android.gms.auth.api.signin.GoogleSignIn
+import com.google.android.gms.auth.api.signin.GoogleSignInClient
+import com.google.android.gms.auth.api.signin.GoogleSignInOptions
+import com.google.android.gms.common.api.ApiException
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
@@ -52,34 +61,96 @@ fun CreateAccountScreen(navController: NavController,
     var confirmPassword by rememberSaveable { mutableStateOf("") }
     var isChecked by rememberSaveable { mutableStateOf(false) }
     var passwordVisible by rememberSaveable { mutableStateOf(false) }
-    var confirmPasswordVisible by rememberSaveable { mutableStateOf(false) } // Renamed
+    var confirmPasswordVisible by rememberSaveable { mutableStateOf(false) }
 
-    // Error states as nullable strings
+    // Field-specific errors
     var usernameError by rememberSaveable { mutableStateOf<String?>(null) }
     var emailError by rememberSaveable { mutableStateOf<String?>(null) }
     var passwordError by rememberSaveable { mutableStateOf<String?>(null) }
     var confirmPasswordError by rememberSaveable { mutableStateOf<String?>(null) }
-    var termsError by rememberSaveable { mutableStateOf<String?>(null) } // For checkbox error
+    var termsError by rememberSaveable { mutableStateOf<String?>(null) }
 
-    val authState by viewModel.authState.collectAsState()
+    // *** ADD General Error State for ViewModel/Google Errors ***
+    var generalError by rememberSaveable { mutableStateOf<String?>(null) }
+
+    // Observe ViewModel state (use collectAsStateWithLifecycle)
+    val authState by viewModel.authState.collectAsStateWithLifecycle()
+    val isLoading = authState is AuthViewModel.AuthState.Loading
+    val scope = rememberCoroutineScope()
 
     var showModal by remember { mutableStateOf(false) }
+    val focusManager = LocalFocusManager.current // To dismiss keyboard
 
     LaunchedEffect(authState) {
-        when (authState) {
+        when (val state = authState) {
             is AuthViewModel.AuthState.Success -> {
-                // Navigate to verification screen on success
-                navController.navigate("emailVerification")
+                // Check if success came after Google Sign-In (Firebase user exists)
+                // Or if it's email registration success
+                // A simple check for now: If successful, navigate home
+                // (assuming Google Sign-In doesn't need email verification screen)
+                println("Auth Success in CreateAccountScreen. Navigating Home.")
+                generalError = null // Clear any previous errors
+                navController.navigate(ScreenNavigation.Screen.EmailVerification.route) {
+                    popUpTo(navController.graph.findStartDestination().id) {
+                        inclusive = true // Clear Login/SignUp stack
+                    }
+                    launchSingleTop = true
+                }
+                // Reset state after handling (maybe slight delay needed if navigation is slow)
+                // delay(100)
                 viewModel.resetAuthStateToIdle()
             }
             is AuthViewModel.AuthState.Error -> {
-                // Show error message
-                val error = (authState as AuthViewModel.AuthState.Error).message
-                // You can show a snackbar or set specific field errors
-                // For simplicity, we'll set it to email error
-                emailError = error
+                // Show error message using the general error state
+                generalError = state.message
+                // Don't reset state here, let user see the error
             }
+            AuthViewModel.AuthState.Loading -> {
+                generalError = null // Clear error when loading starts
+                focusManager.clearFocus()
+            }
+            AuthViewModel.AuthState.Idle -> {
+                // Optionally clear generalError when idle if it's persistent
+                // if (generalError != null) generalError = null
+            }
+            // Handle other states if necessary
             else -> {}
+        }
+    }
+
+    // ---> Google Sign-In Setup (Looks Correct) <---
+    val context = LocalContext.current
+    val googleSignInClient: GoogleSignInClient = remember {
+        val gso = GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
+            .requestIdToken(context.getString(R.string.default_web_client_id))
+            .requestEmail()
+            .build()
+        GoogleSignIn.getClient(context, gso)
+    }
+
+    val googleSignInLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.StartActivityForResult()
+    ) { result: ActivityResult ->
+        if (result.resultCode == Activity.RESULT_OK) {
+            val task = GoogleSignIn.getSignedInAccountFromIntent(result.data)
+            try {
+                val account = task.getResult(ApiException::class.java)!!
+                val googleUsername = account.displayName
+                val googlePhotoUrl = account.photoUrl
+                println("Google Sign-In Success (UI): Name=$googleUsername, Photo=$googlePhotoUrl")
+                viewModel.signInWithGoogleCredential(account) // Call ViewModel
+
+            } catch (e: ApiException) {
+                println("Google Sign In Error (UI): ${e.statusCode}")
+                // *** Set General Error for UI Feedback ***
+                generalError = "Google Sign-In failed. (Code: ${e.statusCode})"
+                viewModel.resetAuthStateToIdle()
+            }
+        } else {
+            println("Google Sign In cancelled or failed (Result Code: ${result.resultCode})")
+            // *** Optionally show cancellation message ***
+            // generalError = "Google Sign-In cancelled."
+            viewModel.resetAuthStateToIdle()
         }
     }
 
@@ -123,6 +194,18 @@ fun CreateAccountScreen(navController: NavController,
         )
 
         Spacer(modifier = Modifier.height(15.dp))
+
+        if (generalError != null && !isLoading) { // Show if error exists and not loading
+            Text(
+                text = generalError!!,
+                color = MaterialTheme.colorScheme.error, // Use theme color
+                style = MaterialTheme.typography.bodySmall,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(bottom = 8.dp), // Add some space below
+                textAlign = TextAlign.Center
+            )
+        }
 
         // --- Username Input ---
         InputLabelRow(label = "Username:", errorMessage = usernameError)
@@ -339,7 +422,6 @@ fun CreateAccountScreen(navController: NavController,
                 }
 
                 if (!hasError) {
-                    // TODO: Call API to create account
                     viewModel.registerUser(username, email, password)
                 }
             },
@@ -399,7 +481,27 @@ fun CreateAccountScreen(navController: NavController,
             SocialLoginButton( // Assuming helper exists
                 iconResId = R.drawable.icons8_google_144,
                 contentDescription = "Google",
-                onClick = { /* TODO: Implement Google Sign-In */ },
+                onClick = {
+                    if (!isLoading) {
+                        generalError = null
+                        println("Google Sign-In button clicked...")
+                        // ---> LAUNCH A COROUTINE TO SIGN OUT FIRST <---
+                        scope.launch {
+                            try {
+                                println("Attempting Google Sign-Out to force account picker...")
+                                googleSignInClient.signOut().await() // Sign out from Google SDK
+                                println("Google Sign-Out successful. Launching Sign-In Intent...")
+                                // ---> THEN LAUNCH THE SIGN-IN INTENT <---
+                                googleSignInLauncher.launch(googleSignInClient.signInIntent)
+                            } catch (e: Exception) {
+                                // Log the error, but likely still proceed with sign-in attempt
+                                println("Error during Google Sign-Out (continuing with sign-in attempt): ${e.message}")
+                                // Still try to launch sign-in, as the user's intent was to sign in
+                                googleSignInLauncher.launch(googleSignInClient.signInIntent)
+                            }
+                        }
+                    }
+                          },
             )
             SocialLoginButton(
                 iconResId = R.drawable.icons8_facebook_logo_192,
@@ -428,7 +530,7 @@ fun CreateAccountScreen(navController: NavController,
                     color = Color(26, 77, 46)
                 ),
                 modifier = Modifier.clickable {
-                    navController.navigate("signIn")
+                    navController.navigate(ScreenNavigation.Screen.LogIn.route)
                 }
             )
         }
@@ -449,7 +551,7 @@ fun TermsAndConditionsDialog(onDismiss: () -> Unit) {
     Dialog(onDismissRequest = onDismiss) {
         Surface(
             shape = RoundedCornerShape(12.dp),
-            color = MaterialTheme.colorScheme.surface,
+            color = Color.White,
             tonalElevation = 6.dp,
             modifier = Modifier
                 .fillMaxWidth()
@@ -534,7 +636,7 @@ fun EmailVerificationScreen(
                 }
 
                 // *** CRITICAL FIX: Navigate Immediately ***
-                navController.navigate("accountSuccessfully") { // Replace "home" with your actual home route
+                navController.navigate(ScreenNavigation.Screen.AccountSuccessfullyCreated.route) { // Replace "home" with your actual home route
                     // Clear the back stack up to the start destination
                     popUpTo(navController.graph.findStartDestination().id) {
                         inclusive = true
@@ -613,8 +715,11 @@ fun EmailVerificationScreen(
                     canResend = false // Start cooldown
                 }
             },
-            enabled = canResend,
-            modifier = Modifier.fillMaxWidth()
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(50.dp),
+            colors = ButtonDefaults.buttonColors(containerColor = Color(26, 77, 46)), // Keep color
+            shape = RoundedCornerShape(50.dp)
         ) {
             Text(if (canResend) "Resend Verification Email" else "Resend available in $timeLeft")
         }
@@ -623,17 +728,25 @@ fun EmailVerificationScreen(
 
         // Go Back Button (logs out user)
         TextButton(onClick = {
-            viewModel.logout() // Ensure user is logged out if they go back
-            // Navigate back to the previous screen (likely login or signup)
+            viewModel.logout() // Ensure user is logged out if they go back without verifying
+
+            // Attempt to navigate back to the previous screen (likely signup)
             if (navController.previousBackStackEntry != null) {
                 navController.popBackStack()
             } else {
-                // Handle case where there's no screen to pop back to,
-                // maybe navigate explicitly to login?
-                // navController.navigate("login") { popUpTo(0) }
+                // Fallback: Navigate explicitly to Login if popping isn't possible
+                // This shouldn't happen in the normal flow but is safe to include.
+                navController.navigate(ScreenNavigation.Screen.LogIn.route) {
+                    popUpTo(navController.graph.findStartDestination().id) {
+                        inclusive = true
+                    }
+                    // Optional: Ensure only one instance of Login
+                    launchSingleTop = true
+                }
             }
         }) {
-            Text("Go Back")
+            Text("Go Back",
+                color = Color(26, 77, 46))
         }
 
         // Observe the ViewModel state for feedback (e.g., errors on resend)

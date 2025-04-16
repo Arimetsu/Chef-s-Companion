@@ -43,7 +43,7 @@ import com.example.myapplication.front_end.home.NavBar
 
 val recipes = listOf(
     Recipe("Veni", "Spicy Firecracker Beef", R.drawable.tryfood, "9.5", "Lunch", "1 Hour", 5, false),
-    Recipe("Vennidict", "Chicken Fajitas", R.drawable.tryfood, "9.2", "Dinner", "30 min", 1, false),
+    Recipe("Vennidicto Cruz Aack", "Chicken Fajitas", R.drawable.tryfood, "9.2", "Dinner", "30 min", 1, false),
     Recipe("Vennidict", "Canned Tuna Pasta", R.drawable.tryfood, "9.3", "Breakfast", "30 min", 1, false),
     Recipe("Vennidict", "Canned Tuna Pasta", R.drawable.tryfood, "9.3", "Lunch", "30 min", 1, true),
     Recipe("Vennidict", "Canned Tuna Pasta", R.drawable.tryfood, "9.3", "Lunch", "30 min", 1, true),
