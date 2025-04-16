@@ -13,14 +13,12 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ArrowBack
-import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -42,14 +40,17 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle // Recommended state collection
+import androidx.lifecycle.viewmodel.compose.viewModel // Standard ViewModel import
 import androidx.navigation.NavHostController
 import coil.compose.AsyncImage
 import com.example.myapplication.R
-import com.example.myapplication.data.FirebaseRecipe
-// Import the data class for Firebase
+// Import the data class for Firebase (not needed here directly anymore)
+// import com.example.myapplication.data.FirebaseRecipe
 import com.example.myapplication.front_end.home.monte
 import com.example.myapplication.ui.theme.MyApplicationTheme
-
+import com.example.myapplication.viewModel.RecipeViewModel // Import ViewModel
+import com.google.firebase.annotations.concurrent.Background
 
 // Define primary color for consistency
 val PrimaryGreen = Color(0xFF1A4D2E) // Same as Color(26, 77, 46)
@@ -80,7 +81,11 @@ val commonUnits = listOf(
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun NewRecipeScreen(navController: NavHostController /* Add ViewModel parameter later */) {
+fun NewRecipeScreen(
+    navController: NavHostController,
+    // Inject the ViewModel
+    recipeViewModel: RecipeViewModel = viewModel() // Or hiltViewModel() if using Hilt
+) {
 
     // --- State Variables ---
     var recipeName by rememberSaveable { mutableStateOf("") }
@@ -96,23 +101,53 @@ fun NewRecipeScreen(navController: NavHostController /* Add ViewModel parameter 
     var cookingHours by rememberSaveable { mutableStateOf("") }
     var cookingMinutes by rememberSaveable { mutableStateOf("") }
     var personalNote by rememberSaveable { mutableStateOf("") }
-    var selectedCollection by rememberSaveable { mutableStateOf("") }
-    val collectionOptions = listOf("Favorites", "To Try", "Quick Meals", "Family Recipes", "None") // Load dynamically later
+    var selectedCollection by rememberSaveable { mutableStateOf("None") } // Default to None
+    val collectionOptions = listOf("None", "Favorites", "To Try", "Quick Meals", "Family Recipes") // Load dynamically later
     var isCollectionDropdownExpanded by remember { mutableStateOf(false) }
     val ingredients = remember { mutableStateListOf(IngredientInputItem()) }
     val instructions = remember { mutableStateListOf("") }
     var imageUri by remember { mutableStateOf<Uri?>(null) }
 
+    // --- Get ViewModel State ---
+    val saveState by recipeViewModel.recipeSaveState.collectAsStateWithLifecycle()
+
+    // --- New State Variables for Nutritional Info ---
+    var caloriesInput by rememberSaveable { mutableStateOf("") }
+    var proteinInput by rememberSaveable { mutableStateOf("") }
+    var fatInput by rememberSaveable { mutableStateOf("") }
+    var carbsInput by rememberSaveable { mutableStateOf("") }
+
+    // --- Other variables ---
     val imagePickerLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.GetContent()
     ) { uri: Uri? ->
         imageUri = uri
     }
     val focusManager = LocalFocusManager.current
-    val context = LocalContext.current // Get context for Toasts
+    val context = LocalContext.current
 
-    // State for validation errors (optional, for showing messages)
-    var validationError by remember { mutableStateOf<String?>(null) }
+    // --- Handle ViewModel State Changes (Reacting to Success/Error/Loading) ---
+    LaunchedEffect(saveState) {
+        when (val state = saveState) {
+            is RecipeViewModel.RecipeSaveState.Success -> {
+                Toast.makeText(context, state.message, Toast.LENGTH_LONG).show()
+                recipeViewModel.resetRecipeSaveState() // Reset state after handling
+                navController.popBackStack() // Navigate back on success
+            }
+            is RecipeViewModel.RecipeSaveState.Error -> {
+                // Show error message from ViewModel state
+                Toast.makeText(context, "Error: ${state.message}", Toast.LENGTH_LONG).show()
+                recipeViewModel.resetRecipeSaveState() // Reset state after showing error
+            }
+            is RecipeViewModel.RecipeSaveState.Loading -> {
+                // UI updates for loading are handled in the Button's content/enabled state
+                println("Recipe saving...") // Optional logging
+            }
+            RecipeViewModel.RecipeSaveState.Idle -> {
+                // Nothing specific to do in Idle state usually after initialization
+            }
+        }
+    }
 
     Scaffold(
         topBar = {
@@ -132,27 +167,16 @@ fun NewRecipeScreen(navController: NavHostController /* Add ViewModel parameter 
         LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
+                .background(Color.White)
                 .padding(paddingValues)
                 .padding(horizontal = 16.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp)
+            verticalArrangement = Arrangement.spacedBy(16.dp),
         ) {
-            // --- Validation Error Display ---
-            if (validationError != null) {
-                item {
-                    Text(
-                        text = validationError!!,
-                        color = MaterialTheme.colorScheme.error,
-                        style = MaterialTheme.typography.bodySmall,
-                        modifier = Modifier.padding(bottom = 8.dp)
-                    )
-                }
-            }
-
             // --- Recipe Name ---
             item {
                 OutlinedTextField(
                     value = recipeName,
-                    onValueChange = { recipeName = it; validationError = null }, // Clear error on change
+                    onValueChange = { recipeName = it }, // Just update state
                     label = { Text("Recipe Name", color = TextFieldTextColor.copy(alpha = 0.7f)) },
                     modifier = Modifier.fillMaxWidth(),
                     singleLine = true,
@@ -166,7 +190,7 @@ fun NewRecipeScreen(navController: NavHostController /* Add ViewModel parameter 
             item {
                 ImageInputSection(
                     imageUri = imageUri,
-                    onAddImageClick = { imagePickerLauncher.launch("image/*"); validationError = null }
+                    onAddImageClick = { imagePickerLauncher.launch("image/*") } // Launch picker
                 )
             }
 
@@ -176,7 +200,7 @@ fun NewRecipeScreen(navController: NavHostController /* Add ViewModel parameter 
                     label = "Cuisine",
                     options = cuisineOptions,
                     selectedOption = selectedCuisine,
-                    onOptionSelected = { selectedCuisine = it; validationError = null },
+                    onOptionSelected = { selectedCuisine = it }, // Update state
                     isExpanded = isCuisineDropdownExpanded,
                     onExpandedChange = { isCuisineDropdownExpanded = it }
                 )
@@ -188,7 +212,7 @@ fun NewRecipeScreen(navController: NavHostController /* Add ViewModel parameter 
                     label = "Category",
                     options = categoryOptions,
                     selectedOption = selectedCategory,
-                    onOptionSelected = { selectedCategory = it; validationError = null },
+                    onOptionSelected = { selectedCategory = it }, // Update state
                     isExpanded = isCategoryDropdownExpanded,
                     onExpandedChange = { isCategoryDropdownExpanded = it }
                 )
@@ -199,8 +223,8 @@ fun NewRecipeScreen(navController: NavHostController /* Add ViewModel parameter 
                 OutlinedTextField(
                     value = servings,
                     onValueChange = { newValue ->
+                        // Filter input to allow only digits, limit length
                         servings = newValue.filter { it.isDigit() }.take(3)
-                        validationError = null
                     },
                     label = { Text("Servings (Person)", color = TextFieldTextColor.copy(alpha = 0.7f)) },
                     modifier = Modifier.fillMaxWidth(),
@@ -214,10 +238,10 @@ fun NewRecipeScreen(navController: NavHostController /* Add ViewModel parameter 
             // --- Time Inputs ---
             item {
                 TimeInputRow(
-                    prepHours = preparationHours, onPrepHoursChange = { preparationHours = it; validationError = null },
-                    prepMinutes = preparationMinutes, onPrepMinutesChange = { preparationMinutes = it; validationError = null },
-                    cookHours = cookingHours, onCookHoursChange = { cookingHours = it; validationError = null },
-                    cookMinutes = cookingMinutes, onCookMinutesChange = { cookingMinutes = it; validationError = null }
+                    prepHours = preparationHours, onPrepHoursChange = { preparationHours = it },
+                    prepMinutes = preparationMinutes, onPrepMinutesChange = { preparationMinutes = it },
+                    cookHours = cookingHours, onCookHoursChange = { cookingHours = it },
+                    cookMinutes = cookingMinutes, onCookMinutesChange = { cookingMinutes = it }
                 )
             }
 
@@ -226,8 +250,8 @@ fun NewRecipeScreen(navController: NavHostController /* Add ViewModel parameter 
                 IngredientListInput(
                     title = "Ingredients",
                     items = ingredients,
-                    onAddItem = { ingredients.add(IngredientInputItem()); validationError = null },
-                    onRemoveItem = { index -> if (ingredients.size > 1) ingredients.removeAt(index); validationError = null }
+                    onAddItem = { ingredients.add(IngredientInputItem()) }, // Add empty item
+                    onRemoveItem = { index -> if (ingredients.size > 1) ingredients.removeAt(index) } // Remove item
                 )
             }
 
@@ -236,10 +260,10 @@ fun NewRecipeScreen(navController: NavHostController /* Add ViewModel parameter 
                 DynamicListInput(
                     title = "Instructions",
                     items = instructions,
-                    onItemChange = { index, value -> instructions[index] = value; validationError = null },
-                    onAddItem = { instructions.add(""); validationError = null },
-                    onRemoveItem = { index -> if (instructions.size > 1) instructions.removeAt(index); validationError = null },
-                    keyboardAction = ImeAction.Default // Allow multi-line, remove specific action
+                    onItemChange = { index, value -> instructions[index] = value }, // Update item
+                    onAddItem = { instructions.add("") }, // Add empty item
+                    onRemoveItem = { index -> if (instructions.size > 1) instructions.removeAt(index) }, // Remove item
+                    keyboardAction = ImeAction.Default // Allow multi-line
                 )
             }
 
@@ -247,7 +271,7 @@ fun NewRecipeScreen(navController: NavHostController /* Add ViewModel parameter 
             item {
                 OutlinedTextField(
                     value = personalNote,
-                    onValueChange = { personalNote = it },
+                    onValueChange = { personalNote = it }, // Update state
                     label = { Text("Personal Note (Optional)", color = TextFieldTextColor.copy(alpha = 0.7f)) },
                     modifier = Modifier.fillMaxWidth().height(120.dp),
                     textStyle = TextStyle(color = TextFieldTextColor, fontFamily = monte),
@@ -255,13 +279,80 @@ fun NewRecipeScreen(navController: NavHostController /* Add ViewModel parameter 
                 )
             }
 
+            // --- Nutritional Information Section ---
+            item {
+                Column(modifier = Modifier.padding(top = 8.dp)) {
+                    Text(
+                        text = "Nutritional Information (Optional)",
+                        style = MaterialTheme.typography.titleMedium,
+                        fontFamily = monte,
+                        color = PrimaryGreen,
+                        fontWeight = FontWeight.Bold,
+                        modifier = Modifier.padding(bottom = 8.dp)
+                    )
+
+                    // Calories
+                    OutlinedTextField(
+                        value = caloriesInput,
+                        onValueChange = { caloriesInput = it }, // Update state
+                        label = { Text("Calories (e.g., 350 kcal)", color = TextFieldTextColor.copy(alpha = 0.7f)) },
+                        modifier = Modifier.fillMaxWidth(),
+                        textStyle = TextStyle(color = TextFieldTextColor, fontFamily = monte),
+                        colors = recipeTextFieldColors(),
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number, imeAction = ImeAction.Next),
+                        singleLine = true,
+                    )
+                    Spacer(modifier = Modifier.height(8.dp))
+
+                    // Protein
+                    OutlinedTextField(
+                        value = proteinInput,
+                        onValueChange = { proteinInput = it }, // Update state
+                        label = { Text("Protein (e.g., 20g)", color = TextFieldTextColor.copy(alpha = 0.7f)) },
+                        modifier = Modifier.fillMaxWidth(),
+                        textStyle = TextStyle(color = TextFieldTextColor, fontFamily = monte),
+                        colors = recipeTextFieldColors(),
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text, imeAction = ImeAction.Next),
+                        singleLine = true,
+                    )
+                    Spacer(modifier = Modifier.height(8.dp))
+
+                    // Fat
+                    OutlinedTextField(
+                        value = fatInput,
+                        onValueChange = { fatInput = it }, // Update state
+                        label = { Text("Fat (e.g., 15g)", color = TextFieldTextColor.copy(alpha = 0.7f)) },
+                        modifier = Modifier.fillMaxWidth(),
+                        textStyle = TextStyle(color = TextFieldTextColor, fontFamily = monte),
+                        colors = recipeTextFieldColors(),
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text, imeAction = ImeAction.Next),
+                        singleLine = true,
+                    )
+                    Spacer(modifier = Modifier.height(8.dp))
+
+                    // Carbohydrates
+                    OutlinedTextField(
+                        value = carbsInput,
+                        onValueChange = { carbsInput = it }, // Update state
+                        label = { Text("Carbohydrates (e.g., 30g)", color = TextFieldTextColor.copy(alpha = 0.7f)) },
+                        modifier = Modifier.fillMaxWidth(),
+                        textStyle = TextStyle(color = TextFieldTextColor, fontFamily = monte),
+                        colors = recipeTextFieldColors(),
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text, imeAction = ImeAction.Done),
+                        singleLine = true,
+                        keyboardActions = KeyboardActions(onDone = { focusManager.clearFocus() })
+                    )
+                }
+            }
+            // --- End Nutritional Information Section ---
+
             // --- Collection Dropdown ---
             item {
                 DropdownInput(
                     label = "Save to Collection (Optional)",
                     options = collectionOptions,
                     selectedOption = selectedCollection,
-                    onOptionSelected = { selectedCollection = it },
+                    onOptionSelected = { selectedCollection = it }, // Update state
                     isExpanded = isCollectionDropdownExpanded,
                     onExpandedChange = { isCollectionDropdownExpanded = it }
                 )
@@ -273,116 +364,65 @@ fun NewRecipeScreen(navController: NavHostController /* Add ViewModel parameter 
                     modifier = Modifier.fillMaxWidth().padding(vertical = 16.dp),
                     horizontalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
-                    Button( // SAVE BUTTON
+                    // --- SAVE BUTTON ---
+                    Button(
                         onClick = {
                             focusManager.clearFocus()
-                            validationError = null // Clear previous error
 
-                            // --- Simple Validation ---
-                            if (recipeName.isBlank()) {
-                                validationError = "Recipe Name cannot be empty."
-                                Toast.makeText(context, validationError, Toast.LENGTH_SHORT).show()
-                                return@Button // Stop execution
-                            }
-                            if (imageUri == null) {
-                                validationError = "Please add a recipe photo."
-                                Toast.makeText(context, validationError, Toast.LENGTH_SHORT).show()
-                                return@Button
-                            }
-                            if (selectedCuisine.isBlank()) {
-                                validationError = "Please select a cuisine."
-                                Toast.makeText(context, validationError, Toast.LENGTH_SHORT).show()
-                                return@Button
-                            }
-                            if (selectedCategory.isBlank()) {
-                                validationError = "Please select a category."
-                                Toast.makeText(context, validationError, Toast.LENGTH_SHORT).show()
-                                return@Button
-                            }
-                            if (servings.isBlank() || servings.toIntOrNull() == null || servings.toInt() <= 0) {
-                                validationError = "Please enter a valid number of servings."
-                                Toast.makeText(context, validationError, Toast.LENGTH_SHORT).show()
-                                return@Button
-                            }
                             val prepTimeFormatted = formatTime(preparationHours, preparationMinutes)
                             val cookingTimeFormatted = formatTime(cookingHours, cookingMinutes)
-                            if (prepTimeFormatted.isBlank() && cookingTimeFormatted.isBlank()) {
-                                validationError = "Please enter Preparation or Cooking Time."
-                                Toast.makeText(context, validationError, Toast.LENGTH_SHORT).show()
-                                return@Button
-                            }
-                            val finalIngredients = ingredients.filter { it.name.isNotBlank() }
-                            if (finalIngredients.isEmpty()) {
-                                validationError = "Please add at least one ingredient."
-                                Toast.makeText(context, validationError, Toast.LENGTH_SHORT).show()
-                                return@Button
-                            }
-                            val finalInstructions = instructions.filter { it.isNotBlank() }
-                            if (finalInstructions.isEmpty()) {
-                                validationError = "Please add at least one instruction step."
-                                Toast.makeText(context, validationError, Toast.LENGTH_SHORT).show()
-                                return@Button
-                            }
-
-
-                            // --- If Validation Passes ---
-                            println("Validation Passed! Preparing to save...")
-
-                            // Format Ingredients for saving
-                            val formattedIngredients = finalIngredients.map {
-                                // Create a clean string, handling cases where quantity or unit might be empty
-                                buildString {
+                            val finalIngredients = ingredients
+                                .filter { it.name.isNotBlank() }
+                                .map { buildString {
                                     if (it.quantity.isNotBlank()) append("${it.quantity} ")
                                     if (it.unit.isNotBlank()) append("${it.unit} ")
                                     append(it.name)
-                                }.trim()
-                            }
+                                }.trim() }
+                            val finalInstructions = instructions.filter { it.isNotBlank() }
 
-                            // Placeholder for image upload and getting URL
-                            // In real app, call ViewModel function here to upload imageUri
-                            // val imageUrl = viewModel.uploadImageAndGetUrl(imageUri!!)
-                            val placeholderImageUrl = "PLACEHOLDER_IMAGE_URL" // Replace after upload
-
-                            // TODO: Get current user ID and Name from AuthViewModel
-                            val currentUserId = "TEMP_USER_ID"
-                            val currentUsername = "TEMP_USER_NAME"
-
-                            // Construct the FirebaseRecipe object
-                            val newRecipe = FirebaseRecipe(
-                                name = recipeName.trim(),
-                                imageUrl = placeholderImageUrl, // Use the actual URL after upload
-                                cuisine = selectedCuisine,
-                                category = selectedCategory,
-                                servings = servings.toInt(), // Already validated it's an Int > 0
-                                prepTime = prepTimeFormatted,
-                                cookingTime = cookingTimeFormatted,
-                                ingredients = formattedIngredients, // Use formatted list
-                                instructions = finalInstructions,
-                                personalNote = personalNote.trim(),
-                                collectionId = if (selectedCollection == "None") null else selectedCollection, // Handle "None" case, potentially map name to ID
-                                authorId = currentUserId,
-                                authorName = currentUsername
-                                // createdAt will be set by Firestore @ServerTimestamp
+                            // **** MODIFIED: Pass context here ****
+                            recipeViewModel.saveNewRecipe(
+                                context = context, // <-- Pass the context
+                                recipeName = recipeName,
+                                imageUri = imageUri,
+                                selectedCuisine = selectedCuisine,
+                                selectedCategory = selectedCategory,
+                                servings = servings,
+                                prepTimeFormatted = prepTimeFormatted,
+                                cookingTimeFormatted = cookingTimeFormatted,
+                                finalIngredients = finalIngredients,
+                                finalInstructions = finalInstructions,
+                                personalNote = personalNote,
+                                selectedCollection = selectedCollection,
+                                caloriesInput = caloriesInput,
+                                proteinInput = proteinInput,
+                                fatInput = fatInput,
+                                carbsInput = carbsInput
                             )
-
-                            // TODO: Call ViewModel to save the 'newRecipe' object
-                            println("Recipe Object to Save: $newRecipe")
-                            // viewModel.saveRecipe(newRecipe)
-
-                            // TODO: Navigate on successful save (e.g., back to list or detail)
-                            Toast.makeText(context, "Recipe Saved (Placeholder)", Toast.LENGTH_LONG).show()
-                            navController.popBackStack() // Go back for now
-
-
                         },
+                        // Disable button while ViewModel is in Loading state
+                        enabled = saveState != RecipeViewModel.RecipeSaveState.Loading,
                         modifier = Modifier.weight(1f).height(48.dp),
                         colors = ButtonDefaults.buttonColors(containerColor = PrimaryGreen),
                         shape = RoundedCornerShape(8.dp)
                     ) {
-                        Text("Save Recipe", fontFamily = monte, color = Color.White)
+                        // Show loading indicator or text based on ViewModel state
+                        if (saveState == RecipeViewModel.RecipeSaveState.Loading) {
+                            CircularProgressIndicator(
+                                modifier = Modifier.size(24.dp),
+                                color = Color.White,
+                                strokeWidth = 2.dp
+                            )
+                        } else {
+                            Text("Save Recipe", fontFamily = monte, color = Color.White)
+                        }
                     }
+
+                    // --- CANCEL BUTTON ---
                     OutlinedButton(
-                        onClick = { navController.popBackStack() },
+                        onClick = { navController.popBackStack() }, // Just navigate back
+                        // Optionally disable cancel during loading too
+                        enabled = saveState != RecipeViewModel.RecipeSaveState.Loading,
                         modifier = Modifier.weight(1f).height(48.dp),
                         border = BorderStroke(1.dp, PrimaryGreen),
                         shape = RoundedCornerShape(8.dp),
