@@ -86,6 +86,7 @@ fun YourRecipeScreen(navController: NavHostController) {
         topBar = {
             Column(
                 modifier = Modifier.padding(16.dp)
+                    .padding(top = 34.dp)
             ) {
                 TopAppBar(
                     title = {
@@ -103,17 +104,23 @@ fun YourRecipeScreen(navController: NavHostController) {
             }
         },
         bottomBar = {
-
             NavBar(selectedItem = selectedTab, onItemSelected = {
                 selectedTab = it
-                if (it == 0) { // Index 0 corresponds to "Home"
-                    navController.navigate(ScreenNavigation.Screen.Home.route)
+                if (it == 1) { // Index 1 corresponds to "Saved" (book icon)
+                    navController.navigate(ScreenNavigation.Screen.YourRecipes.route)
+                }
+                else if (it == 2) {
+                    //TODO USER POST RECIPE
                 }
                 else if (it == 3) {
                     navController.navigate(ScreenNavigation.Screen.MealPlan.route)
                 }
+                else if (it == 4) {
+                    navController.navigate(ScreenNavigation.Screen.UserProfile.route)
+                }
             })
-        },floatingActionButtonPosition = FabPosition.End, // Ensure FAB is at the end (right)
+        },
+        floatingActionButtonPosition = FabPosition.End, // Ensure FAB is at the end (right)
         floatingActionButton = {
             Row(verticalAlignment = Alignment.Bottom) {
                 AnimatedVisibility(
@@ -190,8 +197,8 @@ fun YourRecipeScreen(navController: NavHostController) {
             modifier = Modifier
                 .fillMaxSize()
                 .padding(paddingValues)
-                .padding(horizontal = 16.dp)
                 .background(Color.White)
+                .padding(horizontal = 16.dp)
         ) {
 
             Row(

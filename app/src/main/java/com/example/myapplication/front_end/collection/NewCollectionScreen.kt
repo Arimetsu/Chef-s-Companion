@@ -33,6 +33,7 @@ import coil.compose.rememberImagePainter
 import com.example.myapplication.R
 import com.example.myapplication.data.Recipe
 import com.example.myapplication.front_end.ScreenNavigation
+import com.example.myapplication.front_end.home.NavBar
 import com.example.myapplication.front_end.home.monte
 import com.example.myapplication.ui.theme.MyApplicationTheme
 import com.example.myapplication.ui.theme.latoFont
@@ -40,6 +41,7 @@ import com.example.myapplication.ui.theme.latoFont
 
 @Composable
 fun NewCollectionScreen(onNavigateToNaming: () -> Unit, navController: NavController) {
+    var selectedTab by remember { mutableStateOf(1) }
     val recipes = remember {
         mutableStateListOf(
             Recipe("John Doe", "Canned Tuna Pasta", R.drawable.tryfood, "9.5", "Lunch", "15", 1, true),
@@ -58,7 +60,8 @@ fun NewCollectionScreen(onNavigateToNaming: () -> Unit, navController: NavContro
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(16.dp),
+                    .padding(16.dp)
+                    .padding(top = 40.dp),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
@@ -93,8 +96,24 @@ fun NewCollectionScreen(onNavigateToNaming: () -> Unit, navController: NavContro
             }
         },
         bottomBar = {
-            if (selectedRecipes.isNotEmpty()) {
-                SelectedRecipesBar(selectedRecipes = selectedRecipes)
+            Column {
+                if (selectedRecipes.isNotEmpty()) {
+                    SelectedRecipesBar(selectedRecipes = selectedRecipes)
+                }
+
+                NavBar(
+                    selectedItem = selectedTab,
+                    onItemSelected = { index ->
+                        selectedTab = index
+                        when (index) {
+                            0 -> navController.navigate(ScreenNavigation.Screen.Home.route)
+                            1 -> navController.navigate(ScreenNavigation.Screen.YourRecipes.route)
+                            2 -> {} // Placeholder for other tab
+                            3 -> navController.navigate(ScreenNavigation.Screen.MealPlan.route)
+                            4 -> navController.navigate(ScreenNavigation.Screen.UserProfile.route)
+                        }
+                    }
+                )
             }
         }
     ) { paddingValues ->
@@ -275,31 +294,33 @@ fun RecipeItem(
 
 @Composable
 fun SelectedRecipesBar(selectedRecipes: List<Recipe>) {
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .background(MaterialTheme.colorScheme.primaryContainer)
-            .padding(vertical = 8.dp)
-    ) {
-        Text(
-            "Selected",
-            fontWeight = FontWeight.SemiBold,
-            fontFamily = monte,
-            color = Color(0xFF1A4D2E),
-            modifier = Modifier.padding(start = 16.dp, bottom = 4.dp)
-        )
-        LazyRow(
-            contentPadding = PaddingValues(horizontal = 16.dp),
-            horizontalArrangement = Arrangement.spacedBy(8.dp)
+    MyApplicationTheme {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .background(MaterialTheme.colorScheme.primaryContainer)
+                .padding(vertical = 8.dp)
         ) {
-            items(selectedRecipes.size) { index ->
-                Image(
-                    painter = painterResource(id = selectedRecipes[index].imageResId),
-                    contentDescription = selectedRecipes[index].name,
-                    modifier = Modifier
-                        .size(64.dp)
-                        .clip(RoundedCornerShape(4.dp))
-                )
+            Text(
+                "Selected",
+                fontWeight = FontWeight.SemiBold,
+                fontFamily = monte,
+                color = Color(0xFF1A4D2E),
+                modifier = Modifier.padding(start = 16.dp, bottom = 4.dp)
+            )
+            LazyRow(
+                contentPadding = PaddingValues(horizontal = 16.dp),
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                items(selectedRecipes.size) { index ->
+                    Image(
+                        painter = painterResource(id = selectedRecipes[index].imageResId),
+                        contentDescription = selectedRecipes[index].name,
+                        modifier = Modifier
+                            .size(64.dp)
+                            .clip(RoundedCornerShape(4.dp))
+                    )
+                }
             }
         }
     }

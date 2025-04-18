@@ -66,21 +66,19 @@ fun HomeScreen(navController: NavHostController,
 
     Scaffold(
         bottomBar = {
-            NavBar(selectedItem = selectedTab, onItemSelected = {
-                selectedTab = it
-                if (it == 1) { // Index 1 corresponds to "Saved" (book icon)
-                    navController.navigate(ScreenNavigation.Screen.YourRecipes.route)
+            NavBar(
+                selectedItem = selectedTab,
+                onItemSelected = { index ->
+                    selectedTab = index
+                    when (index) {
+                        0 -> navController.navigate(ScreenNavigation.Screen.Home.route)
+                        1 -> navController.navigate(ScreenNavigation.Screen.YourRecipes.route)
+                        2 -> {} // Placeholder for other tab
+                        3 -> navController.navigate(ScreenNavigation.Screen.MealPlan.route)
+                        4 -> navController.navigate(ScreenNavigation.Screen.UserProfile.route)
+                    }
                 }
-                else if (it == 2) {
-
-                }
-                else if (it == 3) {
-                    navController.navigate(ScreenNavigation.Screen.MealPlan.route)
-                }
-                else if (it == 4) {
-                    navController.navigate(ScreenNavigation.Screen.UserProfile.route)
-                }
-            })
+            )
         }
     ) { paddingValues ->
         Column(

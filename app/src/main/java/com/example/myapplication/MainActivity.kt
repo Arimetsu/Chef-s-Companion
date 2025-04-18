@@ -112,7 +112,7 @@ class MainActivity : ComponentActivity() {
 fun MyApp() {
     val navController = rememberNavController()
 
-    NavHost(navController, startDestination = ScreenNavigation.Screen.LogIn.route ) {
+    NavHost(navController, startDestination = ScreenNavigation.Screen.Home.route ) {
         composable(ScreenNavigation.Screen.SignUp.route) { CreateAccountScreen(navController) }
         composable(ScreenNavigation.Screen.EmailVerification.route) {
             EmailVerificationScreen(
