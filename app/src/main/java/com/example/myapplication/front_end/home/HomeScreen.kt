@@ -32,9 +32,15 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.layout.ContentScale
 import coil.compose.rememberImagePainter
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.text.style.TextOverflow
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
+import coil.compose.AsyncImage
 import com.example.myapplication.data.Recipe
+import com.example.myapplication.data.User
 import com.example.myapplication.front_end.ScreenNavigation
+import com.example.myapplication.viewModel.AuthViewModel
 import recipes
 
 
@@ -49,10 +55,13 @@ val monte = FontFamily(
 )
 
 @Composable
-fun HomeScreen(navController: NavHostController) { // Receive NavController
+fun HomeScreen(navController: NavHostController,
+               authViewModel: AuthViewModel = viewModel()) { // Receive NavController
     var selectedTab by remember { mutableStateOf(0) }
     // This state correctly drives the recipe filtering
     var selectedCategory by remember { mutableStateOf("All") }
+
+    val userProfile by authViewModel.userProfile.collectAsStateWithLifecycle()
 
 
     Scaffold(
@@ -68,6 +77,9 @@ fun HomeScreen(navController: NavHostController) { // Receive NavController
                 else if (it == 3) {
                     navController.navigate(ScreenNavigation.Screen.MealPlan.route)
                 }
+                else if (it == 4) {
+                    navController.navigate(ScreenNavigation.Screen.UserProfile.route)
+                }
             })
         }
     ) { paddingValues ->
@@ -76,7 +88,7 @@ fun HomeScreen(navController: NavHostController) { // Receive NavController
                 .fillMaxSize()
                 .padding(paddingValues)
         ) {
-            TopSection(navController)
+            TopSection(navController, userProfile)
             CategorySection(onCategorySelected = { category -> selectedCategory = category })
             RecipeList(selectedCategory = selectedCategory)
         }
@@ -84,10 +96,13 @@ fun HomeScreen(navController: NavHostController) { // Receive NavController
 }
 
 @Composable
-fun TopSection(navController: NavHostController){
+fun TopSection(navController: NavHostController,
+               userProfile: User?){
     Column(modifier = Modifier.padding(14.dp)) {
-        Row(modifier = Modifier.fillMaxWidth().padding(1.dp),
-            verticalAlignment = Alignment.CenterVertically) {
+        Row(
+            modifier = Modifier.fillMaxWidth().padding(1.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
             Text(
                 text = "Chef's Companion",
                 fontSize = 24.sp,
@@ -120,26 +135,37 @@ fun TopSection(navController: NavHostController){
 
         }
 
-        Row(modifier = Modifier.fillMaxWidth(),
-            verticalAlignment = Alignment.CenterVertically){
+        // --- Dynamic Profile Picture ---
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
             Box(
                 modifier = Modifier
                     .size(60.dp)
+                    .clip(CircleShape) // Clip the image to a circle
+                    .background(Color.LightGray) // Background while loading/error
             ) {
-                Image(
-                    painter = painterResource(R.drawable.user), // Your colored Google icon
-                    contentDescription = "User",
-                    modifier = Modifier
-                        .size(60.dp) // Set the size of the image
-
+                AsyncImage(
+                    model = userProfile?.profileImageUrl, // Use URL from userProfile, or null
+                    contentDescription = "User Profile Picture",
+                    // Provide a fallback/placeholder drawable
+                    placeholder = painterResource(id = R.drawable.user), // Your default user icon
+                    error = painterResource(id = R.drawable.user), // Show same default on error
+                    contentScale = ContentScale.Crop, // Crop to fit the circle
+                    modifier = Modifier.fillMaxSize() // Fill the Box
                 )
             }
-            Column(modifier = Modifier.padding(10.dp)) {
+            // --- End Dynamic Profile Picture ---
+
+            Column(modifier = Modifier.padding(start = 10.dp)) {
                 Text(
-                    text = "Juan Lopez", // name
-                    style = MaterialTheme.typography.bodyMedium,
+                    text = if (userProfile?.username.isNullOrEmpty()) "Welcome!" else userProfile!!.username!!,
+                    style = MaterialTheme.typography.bodyLarge,
                     fontSize = 20.sp,
                     fontWeight = FontWeight.Bold,
+                    maxLines = 1, // Prevent wrapping
+                    overflow = TextOverflow.Ellipsis
                 )
                 Text(
                     text = "What are you making today?",
@@ -150,7 +176,7 @@ fun TopSection(navController: NavHostController){
                 )
             }
         }
-        Spacer(modifier = Modifier.height(10.dp))
+    }
 
         Row(
             modifier = Modifier
@@ -175,7 +201,7 @@ fun TopSection(navController: NavHostController){
             )
         }
     }
-}
+
 
 @Composable
 fun CategorySection(onCategorySelected: (String) -> Unit) {
@@ -242,125 +268,202 @@ fun RecipeList(selectedCategory: String) {
 }
 
 
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
-fun RecipeCard(recipe: Recipe) {
+fun RecipeCard(recipe: Recipe, onClick: () -> Unit = {}) { // Added onClick parameter
     Card(
         shape = RoundedCornerShape(16.dp),
         modifier = Modifier
             .padding(8.dp)
             .fillMaxWidth()
             .height(175.dp)
-            .clickable { /* Handle click */ }
+            .clickable(onClick = onClick)
     ) {
-        Box() {
+        Box { // Main container for stacking image, gradient, and content
             // Background Image
             Image(
-                painter = rememberImagePainter(recipe.imageResId),
+                // painter = rememberAsyncImagePainter(recipe.imageResId), // Use for URLs
+                painter = painterResource(R.drawable.tryfood), // Placeholder
                 contentDescription = recipe.name,
                 modifier = Modifier.fillMaxSize(),
                 contentScale = ContentScale.Crop
             )
 
-            // Gradient Overlay
+            // --- Stacked Gradients ---
+            // 1. Base darkening gradient for general readability
             Box(
                 modifier = Modifier
                     .fillMaxSize()
                     .background(
                         Brush.verticalGradient(
-                            colors = listOf(Color.Transparent, Color(60, 179, 107, 0), Color(26, 77, 46))
+                            colors = listOf(
+                                Color.Transparent,
+                                Color.Black.copy(alpha = 0.0f),
+                                Color.Black.copy(alpha = 0.2f),
+                                Color.Black.copy(alpha = 0.8f)
+                            ),
+                            startY = 200f
                         )
                     )
             )
 
-            // Content (Name, Time, Serving, etc.)
+            // 2. *** ADDED BACK: Your Specific Green Gradient Overlay ***
+            // Applied ON TOP of the darkening gradient
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(
+                        Brush.verticalGradient(
+                            colors = listOf(
+                                Color.Transparent, // Start transparent at the top
+                                Color(60, 179, 107, 0), // Transparent Green (as in your original)
+                                // Opaque Green at the bottom (using alpha value explicitly)
+                                Color(26, 77, 46, 255) // Your original green, fully opaque
+                                // Or use Color(26, 77, 46) if you prefer the shorthand
+                            )
+                            // Adjust startY/endY if needed to control where the green starts/ends
+                        )
+                    )
+            )
+            // --- End Stacked Gradients ---
+
+
+            // Content Area (Positioned on top of gradients)
             Column(
                 modifier = Modifier
-                    .align(Alignment.BottomStart)
-                    .padding(12.dp)
+                    .fillMaxSize()
+                    .padding(horizontal = 12.dp, vertical = 8.dp),
+                verticalArrangement = Arrangement.SpaceBetween // Push badges top, details bottom
             ) {
-                Text(
-                    text = recipe.name,
-                    fontWeight = FontWeight.Bold,
-                    color = Color.White,
-                    fontSize = 12.sp,
-                    fontFamily = monte
-                )
-                Spacer(modifier = Modifier.height(2.dp))
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Icon(painter = painterResource(R.drawable.alarm), contentDescription = "Time", tint = Color(255, 255, 255, 132), modifier = Modifier.size(10.dp))
-                    Text(text = " ${recipe.cookingTime}", color = Color.White, fontSize = 8.sp, fontFamily = monte)
-                    Column{
-                    Divider(
-                        color = Color.Gray,
-                        modifier = Modifier.height(8.dp).width(1.dp), // This works because it's in a Row
-                        thickness = 1.dp
-                    )
-                        }
-                    Icon(painter = painterResource(R.drawable.restaurant), contentDescription = "Serving", tint = Color(255, 255, 255, 132), modifier = Modifier.size(10.dp))
-                    Text(text = " ${recipe.serving} Serving" , color = Color.White, fontSize = 8.sp, fontFamily = monte)
-                }
-            }
 
-            // Floating Rating Badge
-        Row(
-            modifier = Modifier.fillMaxWidth(), // Ensure the Row takes the full width
-            horizontalArrangement = Arrangement.SpaceEvenly, // Distribute space evenly between items
-            verticalAlignment = Alignment.CenterVertically
-        ){
-            Box(
-                modifier = Modifier
-                    .padding(1.dp, top = 9.dp)
-                    .background(Color(26, 77, 46, 140), RoundedCornerShape(12.dp))
-                    .padding(2.dp)
-            ) {
-                Row(verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier.padding(1.dp)) {
-                    Image(
-                        painter = painterResource(R.drawable.user),
-                        contentDescription = "User",
-                        modifier = Modifier
-                            .size(18.dp)
+                // --- Top Badges Area (Using FlowRow) ---
+                FlowRow(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(6.dp),
+                    verticalArrangement = Arrangement.spacedBy(4.dp)
+                ) {
+                    // User Badge (using the helper)
+                    BadgeChip(
+                        text = recipe.nameOfPerson,
+                        iconResId = R.drawable.user,
+                        iconTint = Color.White,
+                        // Keep the green background for the user badge as before
+                        backgroundColor = Color(26, 77, 46, 200), // Semi-transparent green
+                        textColor = Color.White
                     )
+
+                    // Category Badge (using the helper)
+                    BadgeChip(
+                        text = recipe.category,
+                        backgroundColor = Color(255, 255, 255, 209),
+                        textColor = Color.Black
+                    )
+
+                    // Rating Badge (using the helper)
+                    BadgeChip(
+                        text = " ${recipe.rating}",
+                        iconResId = R.drawable.star,
+                        iconTint = Color(255, 185, 0),
+                        backgroundColor = Color(255, 255, 255, 209),
+                        textColor = Color.Black
+                    )
+                }
+
+                // --- Bottom Content Area ---
+                Column {
                     Text(
-                        text = "${recipe.nameOfPerson}",
-                        fontSize = 8.sp,
-                        style = MaterialTheme.typography.bodyMedium,
+                        text = recipe.name,
                         fontWeight = FontWeight.Bold,
-                        modifier = Modifier.padding(start = 4.dp),
-                        color = Color.White
+                        color = Color.White,
+                        fontSize = 14.sp, // Slightly larger for title
+                        fontFamily = monte,
+                        maxLines = 2, // Allow wrapping but limit lines
+                        overflow = TextOverflow.Ellipsis // Add ellipsis if too long
                     )
-                }
-            }
+                    Spacer(modifier = Modifier.height(4.dp))
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Icon(
+                            painter = painterResource(R.drawable.alarm),
+                            contentDescription = "Time",
+                            tint = Color.White.copy(alpha = 0.8f), // Slightly transparent white
+                            modifier = Modifier.size(12.dp) // Slightly larger icon
+                        )
+                        Spacer(modifier = Modifier.width(2.dp))
+                        Text(
+                            text = recipe.cookingTime,
+                            color = Color.White,
+                            fontSize = 10.sp, // Slightly larger
+                            fontFamily = monte
+                        )
 
-            Box(
-                modifier = Modifier
-                    .padding(1.dp, top = 9.dp)
-                    .background(Color(255,255,255, 209), RoundedCornerShape(12.dp))
-                    .padding(6.dp)
-            ) {
-                Text(text = recipe.category,
-                    fontSize = 8.sp,
-                    fontFamily = monte,
+                        // Vertical Divider - Correct placement inside Row
+                        Spacer(modifier = Modifier.width(6.dp))
+                        Divider(
+                            color = Color.White.copy(alpha = 0.5f),
+                            modifier = Modifier
+                                .height(12.dp) // Height of the divider
+                                .width(1.dp)
+                        )
+                        Spacer(modifier = Modifier.width(6.dp))
+
+                        Icon(
+                            painter = painterResource(R.drawable.restaurant),
+                            contentDescription = "Serving",
+                            tint = Color.White.copy(alpha = 0.8f),
+                            modifier = Modifier.size(12.dp)
+                        )
+                        Spacer(modifier = Modifier.width(2.dp))
+                        Text(
+                            text = "${recipe.serving} Serving${if (recipe.serving > 1) "s" else ""}", // Handle plural
+                            color = Color.White,
+                            fontSize = 10.sp,
+                            fontFamily = monte
+                        )
+                    }
+                }
+            } // End Bottom Content Column
+        } // End Main Box
+    } // End Card
+}
+
+// --- Reusable Badge Composable ---
+@Composable
+fun BadgeChip(
+    text: String,
+    backgroundColor: Color,
+    textColor: Color,
+    iconResId: Int? = null, // Optional icon
+    iconTint: Color? = null  // Optional icon tint
+) {
+    Box(
+        modifier = Modifier
+            .background(backgroundColor, RoundedCornerShape(12.dp))
+            // Clip the content just in case text is extremely long and overflows padding
+            .clip(RoundedCornerShape(12.dp))
+            .padding(horizontal = 8.dp, vertical = 4.dp) // Adjust padding as needed
+    ) {
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(4.dp) // Space between icon and text
+        ) {
+            if (iconResId != null) {
+                Icon(
+                    painter = painterResource(id = iconResId),
+                    contentDescription = null, // Decorative icon
+                    tint = iconTint ?: LocalContentColor.current, // Use provided tint or default
+                    modifier = Modifier.size(12.dp) // Consistent icon size
                 )
             }
-
-
-            Box(
-                modifier = Modifier
-                    .padding(1.dp, top = 9.dp)
-                    .background(Color(255,255,255, 209), RoundedCornerShape(12.dp))
-                    .padding(6.dp)
-            ) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Icon(painter = painterResource(R.drawable.star), contentDescription = "Serving", tint = Color(255, 185, 0), modifier = Modifier.size(10.dp))
-                    Text(text = " ${recipe.rating}", fontSize = 8.sp, fontFamily = monte)
-                }
-
-            }
-
+            Text(
+                text = text,
+                color = textColor,
+                fontSize = 9.sp, // Consistent badge text size
+                fontFamily = monte,
+                fontWeight = FontWeight.Medium,
+                maxLines = 1, // Prevent badge text from wrapping
+                overflow = TextOverflow.Ellipsis // Add ellipsis if badge text is too long
+            )
         }
-            }
-
     }
 }
 

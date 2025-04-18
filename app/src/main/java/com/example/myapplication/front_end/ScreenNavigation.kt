@@ -15,6 +15,7 @@ sealed class ScreenNavigation(val Route: String) {
         // Main App
         object Home : Screen("home")
         object YourRecipes : Screen("yourRecipes")
+        object Notification : Screen("Notification")
         object NewCollection : Screen("newCollection")
         object NamingCollection : Screen("namingCollection")
         object AddRecipe : Screen("addRecipe")
@@ -27,6 +28,15 @@ sealed class ScreenNavigation(val Route: String) {
             fun createRoute(mealType: String) = "addMealsToMealPlan/$mealType"
         }
         object AddMealPlan : Screen("addMealPlan")
+
+        //User Profile
+        object UserProfile : Screen("userProfile")
+        object EditProfile : Screen("editProfile")
+        object Privacy : Screen("privacy")
+        object AccountPrivacy : Screen("accountPrivacy")
+        object PrivacyPolicy : Screen("privacyPolicy")
+        object TermsAndConditions : Screen("termsAndConditions")
+        object Faqs : Screen("faqs")
     }
 
 }

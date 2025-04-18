@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -15,34 +16,74 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.example.myapplication.R
 import com.example.myapplication.ui.theme.latoFont
+import com.example.myapplication.viewModel.AuthViewModel
 
-// Import your theme and typography if latoFont isn't directly available globally
-// import com.example.myapplication.ui.theme.latoFont
-// import com.example.myapplication.ui.theme.latoFontLI
 
-// Define navigation routes for type safety (place in a separate navigation file ideally)
 sealed class Screen(val route: String) {
     object Verification : Screen("verification")
     object SignUp : Screen("signUp")
-    // Add other screens...
+
 }
 
 
 @Composable
-fun ForgotPasswordScreen(navController: NavController) {
+fun ForgotPasswordScreen(navController: NavController,
+                         viewModel: AuthViewModel = viewModel()) {
     // Use rememberSaveable to survive process death/configuration changes
     var email by rememberSaveable { mutableStateOf("") }
-    // Store error message string instead of just boolean for better feedback
-    var emailError by rememberSaveable { mutableStateOf<String?>(null) } // Null means no error
+    // General error/success message state from ViewModel
+    var feedbackMessage by rememberSaveable { mutableStateOf<String?>(null) }
+    var isError by rememberSaveable { mutableStateOf(false) } // Flag for message type
 
+    val authState by viewModel.authState.collectAsStateWithLifecycle()
+    val isLoading = authState is AuthViewModel.AuthState.Loading
+    val focusManager = LocalFocusManager.current
+    val context = LocalContext.current // For potential Toast/Snackbar
+
+    LaunchedEffect(authState) {
+        when (val state = authState) {
+            is AuthViewModel.AuthState.PasswordResetEmailSent -> {
+                feedbackMessage = state.message
+                isError = false
+                email = "" // Clear email field on success
+                focusManager.clearFocus()
+                // Optionally show a Snackbar/Toast for non-persistent feedback
+                // Toast.makeText(context, state.message, Toast.LENGTH_LONG).show()
+                viewModel.resetAuthStateToIdle() // Reset state after showing message
+            }
+            is AuthViewModel.AuthState.Error -> {
+                feedbackMessage = state.message
+                isError = true
+                // Don't reset state here, let user see error
+            }
+            AuthViewModel.AuthState.Loading -> {
+                feedbackMessage = null // Clear feedback when loading
+                isError = false
+                focusManager.clearFocus()
+            }
+            else -> {
+                // For Idle or Success (Login/Register Success), potentially clear feedback
+                if (state == AuthViewModel.AuthState.Idle) {
+                    // feedbackMessage = null // Optional: clear message when resetting
+                }
+            }
+        }
+    }
+
+    Box(modifier = Modifier.fillMaxSize()) {
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -82,11 +123,14 @@ fun ForgotPasswordScreen(navController: NavController) {
             )
             Spacer(modifier = Modifier.weight(1f))
             // Display error only if it exists
-            emailError?.let {
+
+            if (feedbackMessage != null) {
+                Spacer(modifier = Modifier.height(8.dp))
                 Text(
-                    text = it,
-                    color = MaterialTheme.colorScheme.error,
-                    style = MaterialTheme.typography.labelMedium,
+                    text = feedbackMessage!!,
+                    color = if (isError) MaterialTheme.colorScheme.error else Color(26, 77, 46), // Green for success
+                    style = MaterialTheme.typography.bodySmall,
+                    modifier = Modifier.fillMaxWidth()
                 )
             }
         }
@@ -98,23 +142,29 @@ fun ForgotPasswordScreen(navController: NavController) {
             value = email,
             onValueChange = {
                 email = it
-                if (emailError != null) {
-                    emailError = null
+                if (feedbackMessage != null) { // Clear feedback on typing
+                    feedbackMessage = null
+                    isError = false
+                    // Also reset ViewModel state if it's an error state
+                    if (authState is AuthViewModel.AuthState.Error) {
+                        viewModel.resetAuthStateToIdle()
+                    }
                 }
             },
-            label = { Text("Email", color = Color(26, 77, 46))},
+            label = { Text("Email", color = Color(26, 77, 46)) },
             placeholder = { Text("Ex. examplechef@mail.com") },
             modifier = Modifier.fillMaxWidth(),
-            textStyle = MaterialTheme.typography.bodyLarge.copy(
-            ),
+            textStyle = MaterialTheme.typography.bodyLarge,
             shape = RoundedCornerShape(10.dp),
-            isError = emailError != null,
+            isError = isError, // Use the error flag
             singleLine = true,
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
             colors = OutlinedTextFieldDefaults.colors(
                 focusedBorderColor = Color(26, 77, 46),
                 unfocusedBorderColor = Color.Gray,
                 errorBorderColor = Color.Red
-            )
+            ),
+            enabled = !isLoading
         )
 
         Spacer(modifier = Modifier.height(40.dp))
@@ -122,39 +172,21 @@ fun ForgotPasswordScreen(navController: NavController) {
         // Send Button
         Button(
             onClick = {
-                // 1. Validate Email
-                val validationError = validateEmail(email)
-                emailError = validationError
-
-                // 2. Proceed if no validation error
-                if (validationError == null) {
-                    // TODO: Implement actual API call to backend
-                    // Show loading indicator here
-                    println("Pretending to call API for email: $email")
-                    // In a real app, the API call would happen here.
-                    // Navigation should only happen on API success.
-                    // The API response would confirm if the email exists
-                    // and if the reset process was initiated.
-
-                    // For now, navigate directly for demonstration
-                    navController.navigate(Screen.Verification.route) {
-                        // Optional: Configure navigation behavior (e.g., popUpTo)
-                    }
-                }
+                focusManager.clearFocus()
+                viewModel.sendPasswordResetEmail(email.trim()) // Call ViewModel function
             },
             modifier = Modifier
                 .fillMaxWidth()
                 .height(50.dp),
-            colors = ButtonDefaults.buttonColors(
-                containerColor = Color(26, 77, 46)
-            ),
-            shape = RoundedCornerShape(50.dp)
+            colors = ButtonDefaults.buttonColors(containerColor = Color(26, 77, 46)),
+            shape = RoundedCornerShape(50.dp),
+            enabled = !isLoading
         ) {
             Text(
-                text = "Send",
+                text = "Send Reset Link", // Updated text
                 fontSize = 18.sp,
-                color = MaterialTheme.colorScheme.onPrimary,
-                fontFamily = latoFont
+                color = Color.White, // Explicit white
+                fontFamily = latoFont // Keep font if needed
             )
         }
 
@@ -187,7 +219,10 @@ fun ForgotPasswordScreen(navController: NavController) {
 
         // Social Login Buttons
         Row(
-            horizontalArrangement = Arrangement.spacedBy(24.dp, Alignment.CenterHorizontally), // Add space between buttons & center
+            horizontalArrangement = Arrangement.spacedBy(
+                24.dp,
+                Alignment.CenterHorizontally
+            ), // Add space between buttons & center
             modifier = Modifier.fillMaxWidth()
         ) {
             // Use a helper composable if this repeats often
@@ -226,7 +261,7 @@ fun ForgotPasswordScreen(navController: NavController) {
             )
         }
         Spacer(modifier = Modifier.height(16.dp))
-
+    }
     }
 }
 
