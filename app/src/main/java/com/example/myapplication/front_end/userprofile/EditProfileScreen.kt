@@ -24,13 +24,16 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
+import androidx.compose.ui.graphics.colorspace.WhitePoint
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -38,6 +41,7 @@ import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.example.myapplication.R
 import com.example.myapplication.ui.theme.MyApplicationTheme
+import com.example.myapplication.ui.theme.Typography
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -51,138 +55,155 @@ fun EditProfileScreen(
     var bio by remember { mutableStateOf("I love cooking and I love planting 🌱 follow me on yt too\n#ChefsDaBest #JohnCooks") }
     var link by remember { mutableStateOf("youtube.com/@johncooks") }
 
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = { Text("") },
-                navigationIcon = {
-                    IconButton(onClick = onBackClick) {
-                        Icon(Icons.Default.ArrowBack, contentDescription = "Back")
-                    }
+    MyApplicationTheme {
+        Scaffold(
+            topBar = {
+                TopAppBar(
+                    title = { },
+                    navigationIcon = {
+                        IconButton(onClick = onBackClick) {
+                            Icon(
+                                Icons.Default.ArrowBack,
+                                contentDescription = "Back",
+                                tint = MaterialTheme.colorScheme.onSurface
+                            )
+                        }
+                    },
+                    colors = TopAppBarDefaults.topAppBarColors(
+                        containerColor = MaterialTheme.colorScheme.surface // Match the body background
+                    )
+                )
+
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(top = 72.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        text = "Edit Profile",
+                        style = Typography.titleMedium,
+                        color = MaterialTheme.colorScheme.onSurface
+                    )
                 }
-            )
-        }
-    ) { paddingValues ->
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(paddingValues)
-                .padding(horizontal = 16.dp),
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            Text(
-                text = "Edit Profile",
-                style = MaterialTheme.typography.headlineSmall,
-                fontWeight = FontWeight.Medium
-            )
-
-            Spacer(modifier = Modifier.height(16.dp))
-
-            // Profile Picture
-            Box(
-                modifier = Modifier
-                    .size(80.dp)
-                    .clip(CircleShape)
-                    .background(Color(0xFF1E5631))
-                    .clickable { /* Handle click */ },
-                contentAlignment = Alignment.Center
-            ) {
-                // If you have a profile picture, use Image instead
-                // Image(
-                //    painter = painterResource(id = R.drawable.profile_picture),
-                //    contentDescription = "Profile Picture",
-                //    modifier = Modifier.fillMaxSize(),
-                //    contentScale = ContentScale.Crop
-                // )
             }
+        ) { paddingValues ->
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(paddingValues)
+                    .padding(horizontal = 16.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
 
-            TextButton(onClick = { /* Handle edit picture click */ }) {
+                Spacer(modifier = Modifier.height(16.dp))
+
+                // Profile Picture
+                Box(
+                    modifier = Modifier
+                        .size(80.dp)
+                        .clip(CircleShape)
+                        .background(Color(0xFF1E5631))
+                        .clickable { /* Handle click */ },
+                    contentAlignment = Alignment.Center
+                ) {
+                    // If you have a profile picture, use Image instead
+                    // Image(
+                    //    painter = painterResource(id = R.drawable.profile_picture),
+                    //    contentDescription = "Profile Picture",
+                    //    modifier = Modifier.fillMaxSize(),
+                    //    contentScale = ContentScale.Crop
+                    // )
+                }
+
+                TextButton(onClick = { /* Handle edit picture click */ }) {
+                    Text(
+                        text = "Edit picture or avatar",
+                        color = MaterialTheme.colorScheme.primary
+                    )
+                }
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                // Display Name Field
+                ProfileField(
+                    label = "Display Name",
+                    value = displayName,
+                    onValueChange = { displayName = it }
+                )
+
+                // Username Field
+                ProfileField(
+                    label = "Username",
+                    value = username,
+                    onValueChange = { username = it }
+                )
+
+                // Bio Field
+                ProfileField(
+                    label = "Bio",
+                    value = bio,
+                    onValueChange = { bio = it },
+                    singleLine = false,
+                    maxLines = 5
+                )
+
+                // Links Section
                 Text(
-                    text = "Edit picture or avatar",
-                    color = MaterialTheme.colorScheme.primary
+                    text = "Links",
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(top = 16.dp, bottom = 8.dp),
+                    style = TextStyle(
+                        fontWeight = FontWeight.Medium,
+                        fontSize = 16.sp
+                    )
                 )
-            }
 
-            Spacer(modifier = Modifier.height(16.dp))
+                // Add External Links Button
+                OutlinedButton(
+                    onClick = { /* Handle add links */ },
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Add,
+                        contentDescription = "Add"
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text("Add external links")
+                }
 
-            // Display Name Field
-            ProfileField(
-                label = "Display Name",
-                value = displayName,
-                onValueChange = { displayName = it }
-            )
+                // Existing Link
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 8.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Image(
+                        painter = painterResource(id = R.drawable.icon_link),
+                        contentDescription = "Link",
+                        colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.onSurfaceVariant),
+                        modifier = Modifier.size(24.dp) // Optional: match icon size
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text(
+                        text = link,
+                        style = TextStyle(color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    )
+                }
 
-            // Username Field
-            ProfileField(
-                label = "Username",
-                value = username,
-                onValueChange = { username = it }
-            )
+                Spacer(modifier = Modifier.weight(1f))
 
-            // Bio Field
-            ProfileField(
-                label = "Bio",
-                value = bio,
-                onValueChange = { bio = it },
-                singleLine = false,
-                maxLines = 5
-            )
-
-            // Links Section
-            Text(
-                text = "Links",
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(top = 16.dp, bottom = 8.dp),
-                style = TextStyle(
-                    fontWeight = FontWeight.Medium,
-                    fontSize = 16.sp
-                )
-            )
-
-            // Add External Links Button
-            OutlinedButton(
-                onClick = { /* Handle add links */ },
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                Icon(
-                    imageVector = Icons.Default.Add,
-                    contentDescription = "Add"
-                )
-                Spacer(modifier = Modifier.width(8.dp))
-                Text("Add external links")
-            }
-
-            // Existing Link
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(vertical = 8.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Image(
-                    painter = painterResource(id = R.drawable.icon_link),
-                    contentDescription = "Link",
-                    colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.onSurfaceVariant),
-                    modifier = Modifier.size(24.dp) // Optional: match icon size
-                )
-                Spacer(modifier = Modifier.width(8.dp))
-                Text(
-                    text = link,
-                    style = TextStyle(color = MaterialTheme.colorScheme.onSurfaceVariant)
-                )
-            }
-
-            Spacer(modifier = Modifier.weight(1f))
-
-            // Save Button
-            Button(
-                onClick = onSaveClick,
-                modifier = Modifier
-                    .padding(vertical = 24.dp)
-                    .fillMaxWidth(0.5f)
-            ) {
-                Text("Save profile")
+                // Save Button
+                Button(
+                    onClick = onSaveClick,
+                    modifier = Modifier
+                        .padding(vertical = 24.dp)
+                        .fillMaxWidth(0.5f)
+                ) {
+                    Text("Save profile")
+                }
             }
         }
     }

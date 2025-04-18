@@ -61,28 +61,77 @@ var search by mutableStateOf("")
 
 @Composable
 fun InteractionSearchScreen(navController: NavHostController) {
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(horizontal = 16.dp)
-        ) {
-            SearchBar(navController)
-            RecentSearches(
-                recentItems = listOf(
-                    RecentSearchItem(SearchItemType.USER, "xampleeuser", "sample name\n20.2M followers", R.drawable.user),
-                    RecentSearchItem(SearchItemType.QUERY, "meowmeow"),
-                    RecentSearchItem(SearchItemType.RECIPE, "Canned Tuna Pasta", "xampleeuser\nitalian",  R.drawable.tryfood),
-                    RecentSearchItem(SearchItemType.USER, "xampleeuser", "sample name\n20.2M followers", R.drawable.user),
-                    RecentSearchItem(SearchItemType.QUERY, "meowmeow"),
-                    RecentSearchItem(SearchItemType.RECIPE, "Canned Tuna Pasta", "xampleeuser\nitalian",  R.drawable.tryfood),
-                    RecentSearchItem(SearchItemType.USER, "xampleeuser", "sample name\n20.2M followers", R.drawable.user),
-                    RecentSearchItem(SearchItemType.QUERY, "meowmeow"),
-                    RecentSearchItem(SearchItemType.RECIPE, "Canned Tuna Pasta", "xampleeuser\nitalian",  R.drawable.tryfood),
-                    RecentSearchItem(SearchItemType.USER, "xampleeuser", "sample name\n20.2M followers", R.drawable.user),
-                    RecentSearchItem(SearchItemType.QUERY, "meowmeow"),
-                    RecentSearchItem(SearchItemType.RECIPE, "Canned Tuna Pasta", "xampleeuser\nitalian", R.drawable.tryfood),
+            Column (
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(top = 56.dp,bottom = 16.dp)
+                    .padding(horizontal = 16.dp)
+            ) {
+                SearchBar(navController)
+                RecentSearches(
+                    recentItems = listOf(
+                        RecentSearchItem(
+                            SearchItemType.USER,
+                            "xampleeuser",
+                            "sample name\n20.2M followers",
+                            R.drawable.user
+                        ),
+                        RecentSearchItem(SearchItemType.QUERY, "meowmeow"),
+                        RecentSearchItem(
+                            SearchItemType.RECIPE,
+                            "Canned Tuna Pasta",
+                            "xampleeuser\nitalian",
+                            R.drawable.tryfood
+                        ),
+                        RecentSearchItem(
+                            SearchItemType.USER,
+                            "xampleeuser",
+                            "sample name\n20.2M followers",
+                            R.drawable.user
+                        ),
+                        RecentSearchItem(SearchItemType.QUERY, "meowmeow"),
+                        RecentSearchItem(
+                            SearchItemType.RECIPE,
+                            "Canned Tuna Pasta",
+                            "xampleeuser\nitalian",
+                            R.drawable.tryfood
+                        ),
+                        RecentSearchItem(
+                            SearchItemType.USER,
+                            "xampleeuser",
+                            "sample name\n20.2M followers",
+                            R.drawable.user
+                        ),
+                        RecentSearchItem(SearchItemType.QUERY, "meowmeow"),
+                        RecentSearchItem(
+                            SearchItemType.RECIPE,
+                            "Canned Tuna Pasta",
+                            "xampleeuser\nitalian",
+                            R.drawable.tryfood
+                        ),
+                        RecentSearchItem(
+                            SearchItemType.USER,
+                            "xampleeuser",
+                            "sample name\n20.2M followers",
+                            R.drawable.user
+                        ),
+                        RecentSearchItem(SearchItemType.QUERY, "meowmeow"),
+                        RecentSearchItem(
+                            SearchItemType.RECIPE,
+                            "Canned Tuna Pasta",
+                            "xampleeuser\nitalian",
+                            R.drawable.tryfood
+                        ),
+                        RecentSearchItem(SearchItemType.QUERY, "meowmeow"),
+                        RecentSearchItem(
+                            SearchItemType.RECIPE,
+                            "Canned Tuna Pasta",
+                            "xampleeuser\nitalian",
+                            R.drawable.tryfood
+                        ),
+                    )
                 )
-            )
+
         }
     }
 

@@ -97,6 +97,7 @@ fun AddMealsToMealPlanScreen(navController: NavController, mealType: String) {
                                 1 -> navController.navigate(ScreenNavigation.Screen.YourRecipes.route)
                                 2 -> {} // Placeholder for other tab
                                 3 -> navController.navigate(ScreenNavigation.Screen.MealPlan.route)
+                                4 -> navController.navigate(ScreenNavigation.Screen.UserProfile.route)
                             }
                         }
                     )

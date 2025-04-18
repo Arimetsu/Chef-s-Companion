@@ -51,7 +51,9 @@ fun addMealPlanScreen(navController: NavController, onAddMealPlanClick: () -> Un
                         when (index) {
                             0 -> navController.navigate(ScreenNavigation.Screen.Home.route)
                             1 -> navController.navigate(ScreenNavigation.Screen.YourRecipes.route)
+                            2 -> {} // Placeholder for other tab
                             3 -> navController.navigate(ScreenNavigation.Screen.MealPlan.route)
+                            4 -> navController.navigate(ScreenNavigation.Screen.UserProfile.route)
                         }
                     }
                 )
