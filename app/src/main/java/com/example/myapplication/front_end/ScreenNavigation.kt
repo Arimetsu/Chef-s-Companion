@@ -27,6 +27,7 @@ sealed class ScreenNavigation(val Route: String) {
         object AddRecipe : Screen("addRecipe")
         object SearchRecipe : Screen("searchRecipe")
         object SearchResult : Screen("searchResult")
+        object FindRecipe : Screen("findRecipe")
 
 
         // Meal Plan

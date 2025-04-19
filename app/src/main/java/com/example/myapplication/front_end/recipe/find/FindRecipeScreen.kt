@@ -37,8 +37,13 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.style.TextAlign
+import androidx.navigation.NavController
+import androidx.navigation.NavHostController
+import androidx.navigation.compose.rememberNavController
 import com.example.myapplication.data.RecipePreferences
 import com.example.myapplication.front_end.home.monte
+import com.example.myapplication.front_end.recipe.add.IngredientInputItem
+import com.example.myapplication.front_end.recipe.add.IngredientListInput
 import com.example.myapplication.front_end.recipe.detail.MutedGray
 
 
@@ -49,17 +54,18 @@ val ChipBorderColor = Color(0xFFBDBDBD) // Chip border color
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
 @Composable
 fun FindRecipeScreen(
+    navController: NavController,
     onBackClicked: () -> Unit = {},
     onGenerateClicked: (RecipePreferences) -> Unit = {},
-    onCancelClicked: () -> Unit = {}
+    onCancelClicked: () -> Unit = {},
 ) {
     // --- State Variables ---
-    var ingredients by rememberSaveable { mutableStateOf("") }
-    var serving by rememberSaveable { mutableStateOf("") }
-    var prepTime by rememberSaveable { mutableStateOf("") }
-    var cookingTime by rememberSaveable { mutableStateOf("") }
-    var selectedCuisines by rememberSaveable { mutableStateOf(setOf<String>()) }
-    var selectedCategories by rememberSaveable { mutableStateOf(setOf<String>()) }
+    val geningredients = remember { mutableStateListOf(IngredientInputItem()) }
+    var genserving by rememberSaveable { mutableStateOf("") }
+    var genprepTime by rememberSaveable { mutableStateOf("") }
+    var gencookingTime by rememberSaveable { mutableStateOf("") }
+    var genselectedCuisines by rememberSaveable { mutableStateOf(setOf<String>()) }
+    var genselectedCategories by rememberSaveable { mutableStateOf(setOf<String>()) }
 
     val cuisineOptions = listOf("Filipino", "American", "Italian", "Indian", "Chinese", "Japanese")
     val categoryOptions = listOf("Breakfast", "Lunch", "Dinner", "Dessert")
@@ -116,33 +122,7 @@ fun FindRecipeScreen(
             Spacer(modifier = Modifier.height(16.dp))
 
             // --- Available Ingredients ---
-            Text("Available Ingredients", style = MaterialTheme.typography.titleMedium)
-            Text(
-                "(Add measure for greater accuracy)",
-                style = MaterialTheme.typography.bodySmall,
-                color = Color.Gray
-            )
-            Spacer(modifier = Modifier.height(4.dp))
-            OutlinedTextField(
-                value = ingredients,
-                onValueChange = { ingredients = it },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(130.dp), // Adjust height as needed
-                placeholder = { Text("Enter ingredients, separated by commas...") },
-                trailingIcon = {
-                    if (ingredients.isNotEmpty()) {
-                        IconButton(onClick = { ingredients = "" }) {
-                            Icon(Icons.Default.Close, contentDescription = "Clear Ingredients")
-                        }
-                    }
-                },
-                colors = OutlinedTextFieldDefaults.colors( // Custom background attempt
-                    focusedContainerColor = LightGreenBackground,
-                    unfocusedContainerColor = LightGreenBackground,
-                    disabledContainerColor = LightGreenBackground,
-                )
-            )
+            IngredientListInput( title = "Available Ingredients", items = geningredients, onAddItem = { geningredients.add(IngredientInputItem()) }, onRemoveItem = { index -> if (geningredients.size > 1) geningredients.removeAt(index) } )
 
             Spacer(modifier = Modifier.height(20.dp))
 
@@ -150,8 +130,8 @@ fun FindRecipeScreen(
             InputRow(
                 label = "Serving",
                 hint = "(Person)",
-                value = serving,
-                onValueChange = { serving = it },
+                value = genserving,
+                onValueChange = { genserving = it },
                 placeholder = "e.g., 4"
             )
 
@@ -160,8 +140,8 @@ fun FindRecipeScreen(
             // --- Preparation Time ---
             InputRow(
                 label = "Preparation Time",
-                value = prepTime,
-                onValueChange = { prepTime = it },
+                value = genprepTime,
+                onValueChange = { genprepTime = it },
                 placeholder = "e.g., 30 mins" // Placeholder updated
             )
 
@@ -170,8 +150,8 @@ fun FindRecipeScreen(
             // --- Cooking Time ---
             InputRow(
                 label = "Cooking Time",
-                value = cookingTime,
-                onValueChange = { cookingTime = it },
+                value = gencookingTime,
+                onValueChange = { gencookingTime = it },
                 placeholder = "e.g., 1 hr 15 mins" // Placeholder updated
             )
 
@@ -182,8 +162,8 @@ fun FindRecipeScreen(
                 label = "Preferred Cuisine",
                 hint = "(Optional)",
                 options = cuisineOptions,
-                selectedOptions = selectedCuisines,
-                onSelectionChanged = { selectedCuisines = it }
+                selectedOptions = genselectedCuisines,
+                onSelectionChanged = { genselectedCuisines = it }
             )
 
             Spacer(modifier = Modifier.height(20.dp))
@@ -192,8 +172,8 @@ fun FindRecipeScreen(
             ChipSelectionGroup(
                 label = "Categories",
                 options = categoryOptions,
-                selectedOptions = selectedCategories,
-                onSelectionChanged = { selectedCategories = it }
+                selectedOptions = genselectedCategories,
+                onSelectionChanged = { genselectedCategories = it }
             )
 
             Spacer(modifier = Modifier.height(32.dp)) // More space before buttons
@@ -203,17 +183,19 @@ fun FindRecipeScreen(
                 onClick = {
                     // Collect data and call the generate function
                     val preferences = RecipePreferences(
-                        ingredients = ingredients.split(",").map { it.trim() }.filter { it.isNotEmpty() },
-                        serving = serving.toIntOrNull(),
-                        prepTime = prepTime,
-                        cookingTime = cookingTime,
-                        cuisines = selectedCuisines,
-                        categories = selectedCategories
+                        ingredients = geningredients
+                            .filter { it.name.isNotBlank() }
+                            .map { "${it.quantity} ${it.unit} ${it.name}" },
+                        serving = genserving.toIntOrNull(),
+                        prepTime = genprepTime,
+                        cookingTime = gencookingTime,
+                        cuisines = genselectedCuisines,
+                        categories = genselectedCategories
                     )
                     onGenerateClicked(preferences)
                 },
                 modifier = Modifier.fillMaxWidth().height(50.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = DarkGreen)
+                colors = ButtonDefaults.buttonColors(containerColor = DarkGreen),
             ) {
                 Text("Generate", fontSize = 16.sp)
             }
@@ -331,6 +313,6 @@ fun ChipSelectionGroup(
 @Composable
 fun FindRecipeScreenPreview() {
     MaterialTheme { // Wrap preview in MaterialTheme
-        FindRecipeScreen()
+        FindRecipeScreen(navController = rememberNavController())
     }
 }

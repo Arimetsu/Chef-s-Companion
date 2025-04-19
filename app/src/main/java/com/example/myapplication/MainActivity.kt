@@ -73,6 +73,7 @@ import com.example.myapplication.front_end.collection.*
 import com.example.myapplication.front_end.home.*
 import com.example.myapplication.front_end.recipe.add.*
 import com.example.myapplication.front_end.recipe.detail.RecipeDetailScreen
+import com.example.myapplication.front_end.recipe.find.FindRecipeScreen
 import com.example.myapplication.front_end.search.*
 import com.example.myapplication.viewModel.RecipeDetailViewModel
 import com.example.myapplication.viewModel.RecipeDetailState
@@ -337,6 +338,7 @@ fun MyApp() {
             )
         }
         composable(ScreenNavigation.Screen.SearchResult.route) { navController }
+        composable(ScreenNavigation.Screen.FindRecipe.route) { FindRecipeScreen(navController) }
 
         // --- Meal Plan ---
         composable(ScreenNavigation.Screen.MealPlan.route) {
