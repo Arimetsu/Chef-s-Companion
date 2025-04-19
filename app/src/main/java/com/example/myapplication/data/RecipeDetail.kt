@@ -19,8 +19,10 @@ data class RecipeDetail(
     val nutritionFacts: List<NutritionItem>?, // Optional section
     val authorName: String,     // ★ ADDED: Often useful to show the author
     val personalNote: String?,
-    var userRating: Int = 0, // 0 = unrated, 1-5 = rating
-    val authorId: String = ""
+    var userRating: Int = 0, // User's *own* rating
+    val authorId: String = "",
+    val ratingCount: Int = 0,      // ★ ADDED: Total number of ratings
+    val averageRating: Double = 0.0 // ★ ADDED: Average rating (e.g., 4.5)
 )
 @IgnoreExtraProperties
 data class IngredientItem(

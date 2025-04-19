@@ -172,7 +172,6 @@ fun NewRecipeScreen(
                 }
             }
 
-
             // --- ★★★ Collection Dropdown (Dynamic) ★★★ ---
             item {
                 var collectionNameOptions by remember { mutableStateOf(listOf("None")) }
@@ -180,13 +179,39 @@ fun NewRecipeScreen(
 
                 // Update options when collectionState changes
                 LaunchedEffect(collectionState) {
-                    if (collectionState is UserCollectionState.Success) {
-                        val collections = (collectionState as UserCollectionState.Success).collections
-                        collectionNameOptions = listOf("None") + collections.map { it.name }
-                        collectionIdMap = mapOf("None" to null) + collections.associateBy({ it.name }, { it.id })
+                    when (val state = collectionState) { // Use 'when' for better state handling
+                        is UserCollectionState.Success -> {
+                            // 1. Access the CORRECT property: collectionsWithPreviews
+                            val collectionsWithPreviews = state.collectionsWithPreviews
 
-                        // Ensure selected name matches selected ID after options load/change
-                        selectedCollectionName = collectionIdMap.entries.find { it.value == selectedCollectionId }?.key ?: "None"
+                            // 2. Filter out the "Favorites" collection - users shouldn't manually add new recipes here
+                            val userSelectableCollections = collectionsWithPreviews.filterNot {
+                                it.collection.name.equals("Favorites", ignoreCase = true)
+                            }
+
+                            // 3. Build options using the nested .collection property
+                            collectionNameOptions = listOf("None") + userSelectableCollections.map { it.collection.name }
+
+                            // 4. Build map using the nested .collection property
+                            collectionIdMap = mapOf("None" to null) + userSelectableCollections.associateBy(
+                                { it.collection.name }, // Key: collection name
+                                { it.collection.id }    // Value: collection ID
+                            )
+
+                            // 5. Ensure selected name matches selected ID after options load/change
+                            // This logic remains the same, but depends on the map being correct now
+                            selectedCollectionName = collectionIdMap.entries.find { it.value == selectedCollectionId }?.key ?: "None"
+                        }
+                        is UserCollectionState.Loading -> {
+                            // Options remain as they were or default, dropdown is disabled via 'enabled' prop
+                        }
+                        is UserCollectionState.Error -> {
+                            // Handle error case if needed (e.g., reset selection, show specific message)
+                            // The Text message below the dropdown already shows the error.
+                            // Consider resetting selection if load fails after a selection was made?
+                            // selectedCollectionId = null
+                            // selectedCollectionName = "None"
+                        }
                     }
                 }
 
@@ -202,14 +227,18 @@ fun NewRecipeScreen(
                     },
                     isExpanded = isCollectionDropdownExpanded,
                     onExpandedChange = { isCollectionDropdownExpanded = it },
-                    // Optional: Disable dropdown while collections are loading
-                    enabled = collectionState !is UserCollectionState.Loading
+                    // Disable dropdown while collections are loading
+                    enabled = collectionState !is UserCollectionState.Loading && collectionState !is UserCollectionState.Error // Also disable on error?
                 )
-                // Optional: Show loading or error state for collections
-                if(collectionState is UserCollectionState.Loading) {
-                    CircularProgressIndicator(modifier = Modifier.size(20.dp).padding(start = 8.dp))
-                } else if (collectionState is UserCollectionState.Error) {
-                    Text("Failed to load collections", color = Color.Red, fontSize = 12.sp, modifier = Modifier.padding(start = 8.dp))
+                // Show loading or error state for collections
+                Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(top = 4.dp)) { // Add some padding
+                    if (collectionState is UserCollectionState.Loading) {
+                        CircularProgressIndicator(modifier = Modifier.size(16.dp)) // Smaller indicator
+                        Text(" Loading collections...", color = Color.Gray, fontSize = 12.sp, modifier = Modifier.padding(start = 8.dp))
+                    } else if (collectionState is UserCollectionState.Error) {
+                        // Maybe add an icon?
+                        Text("Failed to load collections", color = MaterialTheme.colorScheme.error, fontSize = 12.sp)
+                    }
                 }
             }
             // --- ★★★ End Collection Dropdown ★★★ ---

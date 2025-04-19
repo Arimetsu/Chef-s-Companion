@@ -32,6 +32,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
+import com.example.myapplication.front_end.CollectionDetailScreen
 import com.example.myapplication.front_end.ScreenNavigation
 import com.example.myapplication.front_end.YourRecipeScreen
 import com.example.myapplication.front_end.authentication.*
@@ -39,6 +40,7 @@ import com.example.myapplication.front_end.collection.*
 import com.example.myapplication.front_end.home.*
 import com.example.myapplication.front_end.recipe.add.*
 import com.example.myapplication.front_end.recipe.detail.RecipeDetailScreen
+import com.example.myapplication.front_end.recipe.edit.EditRecipeScreen
 import com.example.myapplication.front_end.search.*
 import com.example.myapplication.viewModel.RecipeDetailViewModel
 import com.example.myapplication.viewModel.RecipeDetailState
@@ -193,18 +195,19 @@ fun PermissionAlertDialog(
     )
 }
 
-@RequiresApi(Build.VERSION_CODES.O)
+@RequiresApi(Build.VERSION_CODES.O) // Make sure this annotation is required here
 @Composable
 fun MyApp() {
     val navController = rememberNavController()
+    // Define startDestination (consider checking auth state later)
+    // Use the full path as per your original structure
+    val startDestination = ScreenNavigation.Screen.LogIn.route
 
-    NavHost(navController, startDestination = ScreenNavigation.Screen.LogIn.route) {
+    NavHost(navController, startDestination = startDestination) {
         // --- Authentication ---
         composable(ScreenNavigation.Screen.SignUp.route) { CreateAccountScreen(navController) }
         composable(ScreenNavigation.Screen.EmailVerification.route) { EmailVerificationScreen(navController) }
-        composable(ScreenNavigation.Screen.AccountSuccessfullyCreated.route) {
-            AccountSuccessfullyCreated(navController)
-        }
+        composable(ScreenNavigation.Screen.AccountSuccessfullyCreated.route) { AccountSuccessfullyCreated(navController) }
         composable(ScreenNavigation.Screen.LogIn.route) { LoginScreen(navController) }
         composable(ScreenNavigation.Screen.ForgotPassword.route) { ForgotPasswordScreen(navController) }
         composable(ScreenNavigation.Screen.Verification.route) { VerificationScreen(navController) }
@@ -214,67 +217,111 @@ fun MyApp() {
         // --- Main Features ---
         composable(ScreenNavigation.Screen.Home.route) { HomeScreen(navController) }
         composable(ScreenNavigation.Screen.Notification.route) { NotificationScreen(navController) }
-        composable(ScreenNavigation.Screen.YourRecipes.route) { YourRecipeScreen(navController) }
-        composable(ScreenNavigation.Screen.AddRecipe.route) { NewRecipeScreen(navController) }
-        composable(ScreenNavigation.Screen.SearchRecipe.route) { InteractionSearchScreen(navController) }
+        composable(ScreenNavigation.Screen.YourRecipes.route) { YourRecipeScreen(navController) } // Ensure this Composable exists
+        composable(ScreenNavigation.Screen.AddRecipe.route) { NewRecipeScreen(navController) } // Ensure this Composable exists
+        composable(ScreenNavigation.Screen.SearchRecipe.route) { InteractionSearchScreen(navController) } // Ensure this Composable exists
+        // composable(ScreenNavigation.Screen.SearchResult.route) { /* Your Search Result Screen composable */ }
 
         // --- Collections ---
         composable(ScreenNavigation.Screen.NewCollection.route) {
-            // 'navController' is available here from the NavHost setup
-            NewCollectionScreen(
+            NewCollectionScreen( // Ensure this Composable exists
                 onNavigateToNaming = { ids ->
+                    // Pass the list directly to createRoute
                     navController.navigate(
-                        ScreenNavigation.Screen.NamingCollection.createRoute(ids.joinToString(","))
+                        ScreenNavigation.Screen.NamingCollection.createRoute(ids)
                     )
                 },
-                // *** ADD THIS LINE: ***
                 navController = navController
-                // savedRecipesViewModel = viewModel() // This can be omitted if you rely on the default
             )
         }
         composable(
             route = ScreenNavigation.Screen.NamingCollection.route,
             arguments = listOf(navArgument("recipeIds") { type = NavType.StringType })
         ) { backStackEntry ->
-            val ids = backStackEntry.arguments?.getString("recipeIds")
-                ?.split(",")
-                ?.filter { it.isNotEmpty() }
-                ?: emptyList()
-            NamingCollectionScreen(
+            val idsString = backStackEntry.arguments?.getString("recipeIds") ?: ""
+            val idsList = idsString.split(",").filter { it.isNotEmpty() } // Parse back to list
+
+            NamingCollectionScreen( // Ensure this Composable exists
                 navController = navController,
-                selectedRecipeIds = ids
+                selectedRecipeIds = idsList
+            )
+        }
+
+        // ★ Updated Nav Destination for CollectionDetail ★
+        composable(
+            route = ScreenNavigation.Screen.CollectionDetail.route, // Use route from Screen object: "collection_detail_screen/{collectionId}/{collectionName}"
+            arguments = listOf(
+                navArgument("collectionId") { type = NavType.StringType /* nullable = false is default */ },
+                navArgument("collectionName") { type = NavType.StringType } // Define argument for name
+            )
+        ) { backStackEntry ->
+            // Extract arguments safely
+            val collectionId = backStackEntry.arguments?.getString("collectionId")
+            val encodedCollectionName =
+                backStackEntry.arguments?.getString("collectionName") // Get potentially encoded name
+
+            // Basic validation: Ensure required arguments are present
+            if (collectionId != null && encodedCollectionName != null) {
+                CollectionDetailScreen(
+                    navController = navController,
+                    collectionId = collectionId,
+                    initialCollectionName = encodedCollectionName // Pass the potentially encoded name
+                    // savedRecipesViewModel = yourViewModelInstance // Pass VM if needed
+                )
+            } else {
+                // Handle error: Arguments missing (shouldn't happen if createRoute is used correctly)
+                Log.e(
+                    "NavHost",
+                    "Error: Missing collectionId or collectionName for CollectionDetail route."
+                )
+                // Optionally navigate back or show an error UI
+                navController.popBackStack()
+            }
+        }
+
+        // ★ Added Nav Destination for CollectionEdit ★
+        composable(
+            route = ScreenNavigation.Screen.CollectionEdit.route, // Use route from Screen object
+            arguments = listOf(
+                navArgument("collectionId") { type = NavType.StringType; nullable = false }
+            )
+        ) { backStackEntry ->
+            val collectionId = backStackEntry.arguments?.getString("collectionId")!!
+
+            CollectionEditScreen( // Ensure this Composable exists
+                navController = navController,
+                collectionId = collectionId
             )
         }
 
         // --- Meal Plan ---
         composable(ScreenNavigation.Screen.MealPlan.route) {
-            MealPlanScreen(
+            MealPlanScreen( // Ensure this Composable exists
                 navController,
                 onAddMealsToMealPlanClick = { type ->
                     navController.navigate(ScreenNavigation.Screen.AddMealsToMealPlan.createRoute(type))
                 }
             )
         }
-
         composable(
             ScreenNavigation.Screen.AddMealsToMealPlan.route,
             arguments = listOf(navArgument("mealType") { type = NavType.StringType })
         ) { backStackEntry ->
             val type = backStackEntry.arguments?.getString("mealType") ?: "Unknown"
-            AddMealsToMealPlanScreen(navController, type)
+            AddMealsToMealPlanScreen(navController, type) // Ensure this Composable exists
         }
-
         composable(ScreenNavigation.Screen.AddMealPlan.route) {
-            addMealPlanScreen(
+            addMealPlanScreen( // Ensure this Composable exists (check capitalization: AddMealPlanScreen?)
                 navController,
                 onAddMealPlanClick = {
-                    /* TODO: Handle selected dates list */
-                    navController.navigate(ScreenNavigation.Screen.MealPlan.route)
+                    navController.navigate(ScreenNavigation.Screen.MealPlan.route) {
+                        popUpTo(ScreenNavigation.Screen.MealPlan.route) { inclusive = true }
+                    }
                 }
             )
         }
 
-        // --- Recipe Detail ---
+        // --- Recipe Detail & Edit ---
         composable(
             route = ScreenNavigation.Screen.RecipeDetail.route,
             arguments = listOf(navArgument("recipeId") {
@@ -282,80 +329,25 @@ fun MyApp() {
                 nullable = false
             })
         ) { backStackEntry ->
-            val recipeId = backStackEntry.arguments?.getString("recipeId")
-            if (recipeId.isNullOrBlank()) {
-                Text("Error: Recipe ID is missing.")
-            } else {
-                val recipeDetailViewModel: RecipeDetailViewModel = viewModel()
-                val context = LocalContext.current
-
-                LaunchedEffect(recipeId) {
-                    recipeDetailViewModel.fetchRecipeById(recipeId)
-                }
-
-                val detailState by recipeDetailViewModel.recipeDetailState.collectAsStateWithLifecycle()
-                val updateState by recipeDetailViewModel.recipeUpdateState.collectAsStateWithLifecycle()
-
-                when (val currentDetailState = detailState) {
-                    is RecipeDetailState.Loading, RecipeDetailState.Idle -> {
-                        Box(
-                            modifier = Modifier.fillMaxSize(),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            CircularProgressIndicator()
-                        }
-                    }
-                    is RecipeDetailState.Success -> {
-                        RecipeDetailScreen(
-                            navController = navController,
-                            recipeDetail = currentDetailState.recipeDetail,
-                            isOwner = currentDetailState.isOwner,
-                            onBackClicked = { navController.popBackStack() },
-                            onRatingSaveClicked = { newRating ->
-                                recipeDetailViewModel.updateRecipeRating(recipeId, newRating)
-                            },
-                            onFavoriteToggleClicked = {
-                                recipeDetailViewModel.toggleFavoriteStatus(
-                                    recipeId,
-                                    currentDetailState.recipeDetail.isFavorite
-                                )
-                            },
-                            onBookmarkToggleClicked = {
-                                recipeDetailViewModel.toggleBookmarkStatus(
-                                    recipeId,
-                                    currentDetailState.recipeDetail.isBookmarked
-                                )
-                            }
-                        )
-
-                        LaunchedEffect(updateState) {
-                            when (val currentUpdateState = updateState) {
-                                is RecipeUpdateState.Success -> {
-                                    Toast.makeText(context, "Update Saved!", Toast.LENGTH_SHORT).show()
-                                    recipeDetailViewModel.resetUpdateState()
-                                }
-                                is RecipeUpdateState.Error -> {
-                                    Toast.makeText(
-                                        context,
-                                        "Error saving: ${currentUpdateState.message}",
-                                        Toast.LENGTH_LONG
-                                    ).show()
-                                    recipeDetailViewModel.resetUpdateState()
-                                }
-                                else -> {}
-                            }
-                        }
-                    }
-                    is RecipeDetailState.Error -> {
-                        Box(
-                            modifier = Modifier.fillMaxSize(),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Text("Error: ${currentDetailState.message}")
-                        }
-                    }
-                }
-            }
+            val recipeId = backStackEntry.arguments?.getString("recipeId")!!
+            RecipeDetailScreen( // Ensure this Composable exists
+                navController = navController,
+                recipeId = recipeId,
+                onBackClicked = { navController.popBackStack() }
+            )
         }
-    }
+        composable(
+            route = ScreenNavigation.Screen.EditRecipe.route,
+            arguments = listOf(navArgument("recipeId") {
+                type = NavType.StringType
+                nullable = false
+            })
+        ) { backStackEntry ->
+            val recipeId = backStackEntry.arguments?.getString("recipeId")!!
+            EditRecipeScreen( // Ensure this Composable exists
+                navController = navController,
+                recipeId = recipeId
+            )
+        }
+    } // End NavHost
 }
