@@ -49,6 +49,9 @@ import com.example.myapplication.front_end.home.BadgeChip // Assuming BadgeChip 
 import com.example.myapplication.front_end.home.RatingStarColor // Assuming RatingStarColor is accessible or defined here
 import com.example.myapplication.front_end.home.bb2 // Assuming fonts are accessible or defined here
 import com.example.myapplication.front_end.home.monte // Assuming fonts are accessible or defined here
+import com.example.myapplication.front_end.ScreenNavigation
+import com.example.myapplication.front_end.home.NavBar
+import com.example.myapplication.front_end.home.monte
 import com.example.myapplication.ui.theme.MyApplicationTheme
 import com.example.myapplication.viewModel.SavedRecipeListState
 import com.example.myapplication.viewModel.SavedRecipesViewModel
@@ -364,7 +367,6 @@ fun SelectableHomeScreenRecipeCard(
                     }
                 }
             }
-            // --- End: Copied Content ---
 
             // --- Selection Indicator ---
             if (isSelected) {
@@ -389,7 +391,6 @@ fun SelectableHomeScreenRecipeCard(
     } // End Card
 }
 
-// --- New Composable for the Bottom Bar showing selected recipes ---
 @Composable
 fun SelectedRecipesBar(
     selectedRecipes: List<Recipe>,

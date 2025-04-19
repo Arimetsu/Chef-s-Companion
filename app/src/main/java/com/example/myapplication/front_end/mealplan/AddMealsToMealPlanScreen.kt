@@ -30,6 +30,7 @@ import androidx.navigation.compose.rememberNavController
 // import com.example.myapplication.R // Only needed if BadgeChip etc. are defined locally
 import com.example.myapplication.components.addmealplan.RecipeSearchBar // Assuming this exists and is compatible
 import com.example.myapplication.data.Recipe // UI Model
+import com.example.myapplication.front_end.ScreenNavigation
 // import com.example.myapplication.front_end.ScreenNavigation // Needed if NavBar handles navigation internally
 import com.example.myapplication.front_end.collection.SelectableHomeScreenRecipeCard // *** USE THIS CARD ***
 import com.example.myapplication.front_end.collection.SelectedRecipesBar // *** USE THIS BAR ***
@@ -128,12 +129,14 @@ fun AddMealsToMealPlanScreen(
                         selectedItem = selectedTab,
                         onItemSelected = { index ->
                             selectedTab = index
-                            // Handle navigation based on NavBar selection if needed
-                            // e.g., navigate home, to saved recipes, etc.
-                            // Consider if navigating away should clear selections or prompt user.
+                            when (index) {
+                                0 -> navController.navigate(ScreenNavigation.Screen.Home.route)
+                                1 -> navController.navigate(ScreenNavigation.Screen.YourRecipes.route)
+                                2 -> {} // Placeholder for other tab
+                                3 -> navController.navigate(ScreenNavigation.Screen.MealPlan.route)
+                                4 -> navController.navigate(ScreenNavigation.Screen.UserProfile.route)
+                            }
                         }
-                        // Pass user profile image if needed by NavBar:
-                        // userProfileImageUrl = ...
                     )
                 }
             }

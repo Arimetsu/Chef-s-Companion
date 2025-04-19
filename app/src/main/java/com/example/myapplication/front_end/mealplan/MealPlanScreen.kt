@@ -42,15 +42,19 @@ fun MealPlanScreen(
                 mealPlanAddButton(onAddMealPlanClick)
             },
             bottomBar = {
-                NavBar(selectedItem = selectedTab, onItemSelected = {
-                    selectedTab = it
-                    if (it == 0) { //home
-                        navController.navigate(ScreenNavigation.Screen.Home.route)
+                NavBar(
+                    selectedItem = selectedTab,
+                    onItemSelected = { index ->
+                        selectedTab = index
+                        when (index) {
+                            0 -> navController.navigate(ScreenNavigation.Screen.Home.route)
+                            1 -> navController.navigate(ScreenNavigation.Screen.YourRecipes.route)
+                            2 -> {} // Placeholder for other tab
+                            3 -> navController.navigate(ScreenNavigation.Screen.MealPlan.route)
+                            4 -> navController.navigate(ScreenNavigation.Screen.UserProfile.route)
+                        }
                     }
-                    else if (it == 1) { //your recipe
-                        navController.navigate(ScreenNavigation.Screen.YourRecipes.route)
-                    }
-                })
+                )
             }
         ) { innerPadding ->
             LazyColumn(

@@ -105,5 +105,14 @@ sealed class ScreenNavigation(val Route: String) { // Route property here might 
                 }
             }
         }
+
+        //User Profile
+        object UserProfile : Screen("userProfile")
+        object EditProfile : Screen("editProfile")
+        object Privacy : Screen("privacy")
+        object AccountPrivacy : Screen("accountPrivacy")
+        object PrivacyPolicy : Screen("privacyPolicy")
+        object TermsAndConditions : Screen("termsAndConditions")
+        object Faqs : Screen("faqs")
     }
 }
