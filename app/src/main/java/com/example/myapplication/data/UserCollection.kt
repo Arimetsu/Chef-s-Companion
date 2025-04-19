@@ -10,3 +10,14 @@ data class UserCollection(
     var name: String = "",           // Name of the collection (e.g., "Weeknight Dinners")
     var recipeIds: List<String> = emptyList() // List of FirebaseRecipe IDs in this collection
 )
+
+data class UserCollectionWithPreviews(
+    val collection: UserCollection,
+    val previewImageUrls: List<String> // URLs for the first few recipes
+)
+
+enum class RecipeViewMode {
+    COLLECTIONS, // Show the grid of user collections
+    ALL_RECIPES, // Show the grid of all saved recipes
+    FAVORITES    // Show the grid of favorite recipes
+}

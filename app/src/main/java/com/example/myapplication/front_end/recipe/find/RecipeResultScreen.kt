@@ -21,7 +21,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.myapplication.data.RecipeResult
-import com.example.myapplication.front_end.recipe.detail.RecipeTag
+import com.example.myapplication.front_end.common_composable.RecipeTag
 
 // --- Custom Colors (Approximated - Unchanged) ---
 val DarkGreenTitle = Color(0xFF1B5E20)

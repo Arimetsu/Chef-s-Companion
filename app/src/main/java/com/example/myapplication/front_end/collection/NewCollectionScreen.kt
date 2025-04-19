@@ -1,5 +1,6 @@
 package com.example.myapplication.front_end.collection
 
+import android.util.Log
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -13,12 +14,15 @@ import androidx.compose.foundation.lazy.items // Use items for LazyRow
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.ArrowForward
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Close // For removing items
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.* // Use M3 components
 import androidx.compose.runtime.*
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -51,6 +55,7 @@ import com.example.myapplication.front_end.home.monte
 import com.example.myapplication.ui.theme.MyApplicationTheme
 import com.example.myapplication.viewModel.SavedRecipeListState
 import com.example.myapplication.viewModel.SavedRecipesViewModel
+import androidx.compose.ui.text.TextStyle
 
 // Define or import colors and fonts if not globally accessible
 val PrimaryGreen = Color(26, 77, 46)
@@ -58,77 +63,88 @@ val PrimaryGreen = Color(26, 77, 46)
 // val monte = FontFamily( Font(R.font.montserrat_regular), Font(R.font.montserrat_bold, FontWeight.Bold), Font(R.font.montserrat_light, FontWeight.Light) )
 
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun NewCollectionScreen(
-    onNavigateToNaming: (List<String>) -> Unit,
+    onNavigateToNaming: (List<String>) -> Unit, // Callback with selected IDs
     navController: NavController,
     savedRecipesViewModel: SavedRecipesViewModel = viewModel()
 ) {
+    // --- State ---
+    // Observe the state holding the user's SAVED recipes
+    val savedListState by savedRecipesViewModel.savedRecipeListState.collectAsStateWithLifecycle()
+    // Use rememberSaveable for selection persistence across recompositions/rotations
+    var selectedRecipeIds by rememberSaveable { mutableStateOf(emptySet<String>()) }
+    var searchQuery by rememberSaveable { mutableStateOf("") }
+
+    // --- Effect ---
+    // Fetch the user's saved recipes ONCE when the screen loads
     LaunchedEffect(Unit) {
-        savedRecipesViewModel.fetchAllRecipes()
+        Log.d("NewCollectionScreen", "LaunchedEffect: Fetching recipes for selection.")
+        // Call the function that fetches ALL SAVED recipes for the user
+        savedRecipesViewModel.fetchRecipesForSelection()
+        // Or: savedRecipesViewModel.fetchRecipesForDisplay(RecipeFilters.ALL) - if that fits better
     }
 
-    val allRecipesState by savedRecipesViewModel.allRecipesState.collectAsStateWithLifecycle()
-    var selectedRecipeIds by remember { mutableStateOf(emptySet<String>()) }
-    var searchQuery by remember { mutableStateOf("") }
-    var selectedTab by remember { mutableStateOf(1) }
-
-    // Derived state to get the actual Recipe objects for selected IDs
-    val selectedRecipes = remember(allRecipesState, selectedRecipeIds) {
-        if (allRecipesState is SavedRecipeListState.Success) {
-            (allRecipesState as SavedRecipeListState.Success).recipes.filter {
-                selectedRecipeIds.contains(it.id)
+    // --- Derived State ---
+    // Calculate the list of selected Recipe objects based on the current state and selected IDs
+    val selectedRecipes = remember(savedListState, selectedRecipeIds) {
+        when (val currentState = savedListState) {
+            is SavedRecipeListState.Success -> {
+                // Filter the successfully loaded recipes
+                currentState.recipes.filter { selectedRecipeIds.contains(it.id) }
             }
-        } else {
-            emptyList()
+            else -> {
+                // Return empty list if saved recipes are not loaded or in error state
+                emptyList()
+            }
         }
     }
 
+    Log.d("NewCollectionScreen", "Recomposition: SavedListState=${savedListState::class.simpleName}, SelectedIDs=${selectedRecipeIds.size}")
+
+    // --- UI ---
     Scaffold(
         topBar = {
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .background(Color.White)
-                    .padding(16.dp)
-                    .padding(top = 40.dp),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                IconButton(onClick = { navController.popBackStack() }) {
-                    Icon( Icons.Default.ArrowBack, contentDescription = "Back", tint = PrimaryGreen )
-                }
-                Text(
-                    text = "New Collection",
-                    fontSize = 22.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = PrimaryGreen,
-                    fontFamily = monte
-                )
-                IconButton(
-                    onClick = {
-                        if (selectedRecipeIds.isNotEmpty()) {
-                            onNavigateToNaming(selectedRecipeIds.toList())
-                        }
-                    },
-                    enabled = selectedRecipeIds.isNotEmpty()
-                ) {
+            // Use CenterAlignedTopAppBar for better title centering
+            CenterAlignedTopAppBar(
+                title = {
+                    Text(
+                        text = "New Collection",
+                        fontSize = 22.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = PrimaryGreen,
+                        fontFamily = monte
+                    )
+                },
+                navigationIcon = {
+                    IconButton(onClick = { navController.popBackStack() }) {
+                        Icon( Icons.Default.ArrowBack, contentDescription = "Back", tint = PrimaryGreen )
+                    }
+                },
+                actions = {
+                    // Next button to proceed to naming screen
                     IconButton(
                         onClick = {
                             if (selectedRecipeIds.isNotEmpty()) {
-                                onNavigateToNaming(selectedRecipeIds.toList())
+                                Log.d("NewCollectionScreen", "Navigating to Naming with ${selectedRecipeIds.size} IDs.")
+                                onNavigateToNaming(selectedRecipeIds.toList()) // Pass the list of selected IDs
+                            } else {
+                                Log.d("NewCollectionScreen", "Next clicked but no recipes selected.")
+                                // Optionally show a toast message
                             }
                         },
-                        enabled = selectedRecipeIds.isNotEmpty()
+                        enabled = selectedRecipeIds.isNotEmpty() // Enable only when recipes are selected
                     ) {
                         Icon(
-                            Icons.Default.Check,
+                            Icons.Default.ArrowForward, // Use ArrowForward for "Next"
                             contentDescription = "Next",
-                            tint = if (selectedRecipeIds.isNotEmpty()) PrimaryGreen else Color.Gray
+                            tint = if (selectedRecipeIds.isNotEmpty()) PrimaryGreen else Color.Gray // Indicate enabled/disabled state
                         )
                     }
-                }
-            }
+                },
+                colors = TopAppBarDefaults.centerAlignedTopAppBarColors(containerColor = Color.White) // White background
+            )
         },
         bottomBar = {
             // Show the selected recipes bar only if items are selected
@@ -136,82 +152,103 @@ fun NewCollectionScreen(
                 SelectedRecipesBar(
                     selectedRecipes = selectedRecipes,
                     onUnselect = { recipeId ->
+                        // Update the selection state when an item is unselected from the bar
                         selectedRecipeIds = selectedRecipeIds - recipeId
                     }
                 )
             }
-        }
+        },
     ) { paddingValues ->
         Column(
             modifier = Modifier
-                .padding(paddingValues) // Apply scaffold padding
-                .padding(horizontal = 16.dp) // Apply horizontal padding for content
-                .fillMaxSize()
-                .background(Color.White)
+                .fillMaxSize() // Fill the available space
+                .background(Color.White) // Set background color
+                .padding(paddingValues) // Apply scaffold padding (for content area)
+                .padding(horizontal = 16.dp) // Apply horizontal padding for content inside the column
         ) {
+            // Search Field
             OutlinedTextField(
                 value = searchQuery,
                 onValueChange = { searchQuery = it },
-                leadingIcon = { Icon(Icons.Default.Search, contentDescription = "Search Icon") },
-                placeholder = { Text("Search all recipes by name") },
+                leadingIcon = { Icon(Icons.Default.Search, contentDescription = "Search Icon", tint = Color.Gray) },
+                placeholder = { Text("Search your saved recipes...", color = Color.Gray, fontFamily = monte) },
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(vertical = 8.dp),
                 singleLine = true,
-                shape = RoundedCornerShape(8.dp)
+                shape = RoundedCornerShape(24.dp), // More rounded shape
+                colors = OutlinedTextFieldDefaults.colors(
+                    focusedBorderColor = PrimaryGreen,
+                    unfocusedBorderColor = Color.LightGray,
+                    cursorColor = PrimaryGreen
+                ),
+                textStyle = TextStyle(fontFamily = monte) // Apply font
             )
 
-            Spacer(modifier = Modifier.height(4.dp))
-            Box( modifier = Modifier.fillMaxWidth() ) {
-                Text(
-                    text = "Select Recipes to Add",
-                    fontSize = 18.sp,
-                    fontFamily = monte,
-                    fontWeight = FontWeight(600),
-                    color = PrimaryGreen,
-                )
-            }
+            Spacer(modifier = Modifier.height(8.dp)) // Space after search bar
+
+            // Title Text
+            Text(
+                text = "Select Recipes to Add",
+                fontSize = 18.sp,
+                fontFamily = monte,
+                fontWeight = FontWeight.SemiBold, // Use SemiBold
+                color = Color.DarkGray, // Slightly softer color
+                modifier = Modifier.fillMaxWidth() // Ensure it takes full width for alignment
+            )
+
             Spacer(modifier = Modifier.height(12.dp))
 
             // Recipe Grid Area - takes remaining space
-            Box(modifier = Modifier.weight(1f)) {
-                when (val state = allRecipesState) {
+            Box(modifier = Modifier.weight(1f)) { // Use weight to fill available vertical space
+                // Use the correct state here: savedListState
+                when (val state = savedListState) {
                     is SavedRecipeListState.Loading -> {
+                        // Show loading indicator centered
                         Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                             CircularProgressIndicator(color = PrimaryGreen)
                         }
                     }
                     is SavedRecipeListState.Success -> {
+                        // Filter recipes based on search query
                         val recipesToDisplay = if (searchQuery.isBlank()) {
-                            state.recipes
+                            state.recipes // Show all saved recipes if search is empty
                         } else {
-                            state.recipes.filter {
-                                it.name.contains(searchQuery, ignoreCase = true) ||
-                                        it.category.contains(searchQuery, ignoreCase = true) // Example: search category too
+                            state.recipes.filter { recipe ->
+                                // Case-insensitive search in name, author, or category
+                                recipe.name.contains(searchQuery, ignoreCase = true) ||
+                                        recipe.nameOfPerson.contains(searchQuery, ignoreCase = true) || // Search author
+                                        recipe.category.contains(searchQuery, ignoreCase = true)    // Search category
                             }
                         }
 
                         if (recipesToDisplay.isEmpty()) {
+                            // Show message if no recipes match search or if list is empty
                             Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                                 Text(
-                                    text = if (searchQuery.isBlank()) "No recipes found." else "No recipes match your search.",
+                                    text = if (searchQuery.isBlank()) "You haven't saved any recipes yet." else "No saved recipes match your search.",
                                     color = Color.Gray,
-                                    textAlign = TextAlign.Center
+                                    textAlign = TextAlign.Center,
+                                    fontFamily = monte,
+                                    modifier = Modifier.padding(16.dp)
                                 )
                             }
                         } else {
+                            // Display the grid of selectable recipes
                             LazyVerticalGrid(
-                                columns = GridCells.Fixed(2),
+                                columns = GridCells.Fixed(2), // 2 columns
                                 verticalArrangement = Arrangement.spacedBy(8.dp),
                                 horizontalArrangement = Arrangement.spacedBy(8.dp),
-                                modifier = Modifier.fillMaxSize(),
-                                contentPadding = PaddingValues(bottom = 8.dp) // Padding at the bottom of the grid
+                                modifier = Modifier.fillMaxSize(), // Fill the Box area
+                                contentPadding = PaddingValues(bottom = 8.dp) // Padding at the bottom inside the grid
                             ) {
                                 items(recipesToDisplay, key = { it.id }) { recipe ->
-                                    SelectableHomeScreenRecipeCard( // Use the new composable
+                                    // Use the selectable card composable
+                                    SelectableHomeScreenRecipeCard(
                                         recipe = recipe,
                                         isSelected = selectedRecipeIds.contains(recipe.id),
                                         onClick = { clickedRecipe ->
+                                            // Toggle selection state
                                             selectedRecipeIds = if (selectedRecipeIds.contains(clickedRecipe.id)) {
                                                 selectedRecipeIds - clickedRecipe.id
                                             } else {
@@ -224,16 +261,29 @@ fun NewCollectionScreen(
                         }
                     }
                     is SavedRecipeListState.Error -> {
+                        // Show error message centered
                         Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                            Text("Error loading recipes: ${state.message}", color = Color.Red, textAlign = TextAlign.Center)
+                            Text(
+                                "Error loading your saved recipes:\n${state.message}",
+                                color = Color.Red,
+                                textAlign = TextAlign.Center,
+                                fontFamily = monte,
+                                modifier = Modifier.padding(16.dp)
+                            )
                         }
                     }
                     is SavedRecipeListState.Empty -> {
+                        // This state might be redundant if Success([]) is handled, but included for completeness
                         Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                            Text("No recipes available.", color = Color.Gray)
+                            Text(
+                                "You haven't saved any recipes yet.",
+                                color = Color.Gray,
+                                fontFamily = monte,
+                                modifier = Modifier.padding(16.dp)
+                            )
                         }
                     }
-                }
+                } // End when(state)
             } // End Recipe Grid Area Box
         } // End Column
     } // End Scaffold
