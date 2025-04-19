@@ -1,5 +1,6 @@
 package com.example.myapplication.front_end.collection
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -7,14 +8,16 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.lazy.grid.items // Use items for LazyVerticalGrid
+import androidx.compose.foundation.lazy.items // Use items for LazyRow
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.Close // For removing items
 import androidx.compose.material.icons.filled.Search
-import androidx.compose.material.icons.filled.Star
-import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.* // Use M3 components
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -23,95 +26,117 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.Font
+import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
-import coil.compose.rememberImagePainter
+import coil.compose.AsyncImage
 import com.example.myapplication.R
-import com.example.myapplication.data.Recipe
+import com.example.myapplication.data.Recipe // UI Model
+import com.example.myapplication.front_end.home.BadgeChip // Assuming BadgeChip is accessible or copied here
+import com.example.myapplication.front_end.home.RatingStarColor // Assuming RatingStarColor is accessible or defined here
+import com.example.myapplication.front_end.home.bb2 // Assuming fonts are accessible or defined here
+import com.example.myapplication.front_end.home.monte // Assuming fonts are accessible or defined here
 import com.example.myapplication.front_end.ScreenNavigation
 import com.example.myapplication.front_end.home.NavBar
 import com.example.myapplication.front_end.home.monte
 import com.example.myapplication.ui.theme.MyApplicationTheme
-import com.example.myapplication.ui.theme.latoFont
+import com.example.myapplication.viewModel.SavedRecipeListState
+import com.example.myapplication.viewModel.SavedRecipesViewModel
+
+// Define or import colors and fonts if not globally accessible
+val PrimaryGreen = Color(26, 77, 46)
+// val RatingStarColor = Color(0xFFFFC107)
+// val monte = FontFamily( Font(R.font.montserrat_regular), Font(R.font.montserrat_bold, FontWeight.Bold), Font(R.font.montserrat_light, FontWeight.Light) )
 
 
 @Composable
-fun NewCollectionScreen(onNavigateToNaming: () -> Unit, navController: NavController) {
-    var selectedTab by remember { mutableStateOf(1) }
-    val recipes = remember {
-        mutableStateListOf(
-            Recipe("John Doe", "Canned Tuna Pasta", R.drawable.tryfood, "9.5", "Lunch", "15", 1, true),
-            Recipe("Jane Smith", "Canned Tuna Pasta", R.drawable.tryfood, "9.5", "Lunch", "15", 1, true),
-            Recipe("Peter Jones", "Canned Tuna Pasta", R.drawable.tryfood, "9.5", "Lunch", "15", 1, false),
-            Recipe("Alice Brown", "Canned Tuna Pasta", R.drawable.tryfood, "9.5", "Lunch", "15", 1, false),
-            Recipe("Bob Green", "Canned Tuna Pasta", R.drawable.tryfood, "9.5", "Lunch", "15", 1, false),
-            Recipe("Charlie White", "Canned Tuna Pasta", R.drawable.tryfood, "9.5", "Lunch", "15", 1, true),
-        )
+fun NewCollectionScreen(
+    onNavigateToNaming: (List<String>) -> Unit,
+    navController: NavController,
+    savedRecipesViewModel: SavedRecipesViewModel = viewModel()
+) {
+    LaunchedEffect(Unit) {
+        savedRecipesViewModel.fetchAllRecipes()
     }
 
-    var selectedRecipes by remember { mutableStateOf(listOf<Recipe>()) }
+    val allRecipesState by savedRecipesViewModel.allRecipesState.collectAsStateWithLifecycle()
+    var selectedRecipeIds by remember { mutableStateOf(emptySet<String>()) }
+    var searchQuery by remember { mutableStateOf("") }
+    var selectedTab by remember { mutableStateOf(1) }
+
+    // Derived state to get the actual Recipe objects for selected IDs
+    val selectedRecipes = remember(allRecipesState, selectedRecipeIds) {
+        if (allRecipesState is SavedRecipeListState.Success) {
+            (allRecipesState as SavedRecipeListState.Success).recipes.filter {
+                selectedRecipeIds.contains(it.id)
+            }
+        } else {
+            emptyList()
+        }
+    }
 
     Scaffold(
         topBar = {
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
+                    .background(Color.White)
                     .padding(16.dp)
                     .padding(top = 40.dp),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                // Back Button
-                IconButton(onClick = { navController.navigate("yourRecipes") {
-                    popUpTo(ScreenNavigation.Screen.NewCollection.route) { inclusive = true }
-                }  }) {
-                    Icon(
-                        Icons.Filled.ArrowBack,
-                        contentDescription = "Back",
-                        tint = Color(0xFF1B5E20) // Dark Green
-                    )
+                IconButton(onClick = { navController.popBackStack() }) {
+                    Icon( Icons.Default.ArrowBack, contentDescription = "Back", tint = PrimaryGreen )
                 }
-
-                // Title
                 Text(
                     text = "New Collection",
-                    fontSize = 24.sp,
+                    fontSize = 22.sp,
                     fontWeight = FontWeight.Bold,
-                    color = Color(0xFF1B5E20), // Dark Green
+                    color = PrimaryGreen,
                     fontFamily = monte
                 )
-
-                // Check Button
-                IconButton(onClick = onNavigateToNaming) {
-                    Icon(
-                        Icons.Filled.Check,
-                        contentDescription = "Check",
-                        tint = Color(0xFF1B5E20) // Dark Green
-                    )
+                IconButton(
+                    onClick = {
+                        if (selectedRecipeIds.isNotEmpty()) {
+                            onNavigateToNaming(selectedRecipeIds.toList())
+                        }
+                    },
+                    enabled = selectedRecipeIds.isNotEmpty()
+                ) {
+                    IconButton(
+                        onClick = {
+                            if (selectedRecipeIds.isNotEmpty()) {
+                                onNavigateToNaming(selectedRecipeIds.toList())
+                            }
+                        },
+                        enabled = selectedRecipeIds.isNotEmpty()
+                    ) {
+                        Icon(
+                            Icons.Default.Check,
+                            contentDescription = "Next",
+                            tint = if (selectedRecipeIds.isNotEmpty()) PrimaryGreen else Color.Gray
+                        )
+                    }
                 }
             }
         },
         bottomBar = {
-            Column {
-                if (selectedRecipes.isNotEmpty()) {
-                    SelectedRecipesBar(selectedRecipes = selectedRecipes)
-                }
-
-                NavBar(
-                    selectedItem = selectedTab,
-                    onItemSelected = { index ->
-                        selectedTab = index
-                        when (index) {
-                            0 -> navController.navigate(ScreenNavigation.Screen.Home.route)
-                            1 -> navController.navigate(ScreenNavigation.Screen.YourRecipes.route)
-                            2 -> {} // Placeholder for other tab
-                            3 -> navController.navigate(ScreenNavigation.Screen.MealPlan.route)
-                            4 -> navController.navigate(ScreenNavigation.Screen.UserProfile.route)
-                        }
+            // Show the selected recipes bar only if items are selected
+            if (selectedRecipes.isNotEmpty()) {
+                SelectedRecipesBar(
+                    selectedRecipes = selectedRecipes,
+                    onUnselect = { recipeId ->
+                        selectedRecipeIds = selectedRecipeIds - recipeId
                     }
                 )
             }
@@ -119,287 +144,284 @@ fun NewCollectionScreen(onNavigateToNaming: () -> Unit, navController: NavContro
     ) { paddingValues ->
         Column(
             modifier = Modifier
-                .padding(paddingValues)
-                .padding(horizontal = 16.dp)
+                .padding(paddingValues) // Apply scaffold padding
+                .padding(horizontal = 16.dp) // Apply horizontal padding for content
+                .fillMaxSize()
+                .background(Color.White)
         ) {
             OutlinedTextField(
-                value = "",
-                onValueChange = { /* TODO: Handle search query */ },
-                leadingIcon = { Icon(Icons.Filled.Search, contentDescription = "Search") },
-                placeholder = { Text("Search for a recipe") },
+                value = searchQuery,
+                onValueChange = { searchQuery = it },
+                leadingIcon = { Icon(Icons.Default.Search, contentDescription = "Search Icon") },
+                placeholder = { Text("Search all recipes by name") },
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(vertical = 8.dp)
-                    .background(Color.White, RoundedCornerShape(8.dp))
+                    .padding(vertical = 8.dp),
+                singleLine = true,
+                shape = RoundedCornerShape(8.dp)
             )
+
             Spacer(modifier = Modifier.height(4.dp))
-             Box(
-                 modifier = Modifier.fillMaxWidth()
-             ) {
-                 Text(
-                     text = "Add Recipe",
-                         fontSize = 20.sp,
-                         fontFamily = monte,
-                         fontWeight = FontWeight(600),
-                         color = Color(0xFF1A4D2E),
-                 )
-             }
-            Spacer(modifier = Modifier.height(16.dp))
-            LazyVerticalGrid(
-                columns = GridCells.Fixed(2),
-                verticalArrangement = Arrangement.spacedBy(8.dp),
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                items(recipes.size) { index ->
-                    RecipeItem(
-                        recipe = recipes[index],
-                        isSelected = selectedRecipes.contains(recipes[index]),
-                        onRecipeClick = { recipe ->
-                            selectedRecipes = if (selectedRecipes.contains(recipe)) {
-                                selectedRecipes.minus(recipe)
-                            } else {
-                                selectedRecipes.plus(recipe)
+            Box( modifier = Modifier.fillMaxWidth() ) {
+                Text(
+                    text = "Select Recipes to Add",
+                    fontSize = 18.sp,
+                    fontFamily = monte,
+                    fontWeight = FontWeight(600),
+                    color = PrimaryGreen,
+                )
+            }
+            Spacer(modifier = Modifier.height(12.dp))
+
+            // Recipe Grid Area - takes remaining space
+            Box(modifier = Modifier.weight(1f)) {
+                when (val state = allRecipesState) {
+                    is SavedRecipeListState.Loading -> {
+                        Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                            CircularProgressIndicator(color = PrimaryGreen)
+                        }
+                    }
+                    is SavedRecipeListState.Success -> {
+                        val recipesToDisplay = if (searchQuery.isBlank()) {
+                            state.recipes
+                        } else {
+                            state.recipes.filter {
+                                it.name.contains(searchQuery, ignoreCase = true) ||
+                                        it.category.contains(searchQuery, ignoreCase = true) // Example: search category too
                             }
                         }
-                    )
+
+                        if (recipesToDisplay.isEmpty()) {
+                            Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                                Text(
+                                    text = if (searchQuery.isBlank()) "No recipes found." else "No recipes match your search.",
+                                    color = Color.Gray,
+                                    textAlign = TextAlign.Center
+                                )
+                            }
+                        } else {
+                            LazyVerticalGrid(
+                                columns = GridCells.Fixed(2),
+                                verticalArrangement = Arrangement.spacedBy(8.dp),
+                                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                                modifier = Modifier.fillMaxSize(),
+                                contentPadding = PaddingValues(bottom = 8.dp) // Padding at the bottom of the grid
+                            ) {
+                                items(recipesToDisplay, key = { it.id }) { recipe ->
+                                    SelectableHomeScreenRecipeCard( // Use the new composable
+                                        recipe = recipe,
+                                        isSelected = selectedRecipeIds.contains(recipe.id),
+                                        onClick = { clickedRecipe ->
+                                            selectedRecipeIds = if (selectedRecipeIds.contains(clickedRecipe.id)) {
+                                                selectedRecipeIds - clickedRecipe.id
+                                            } else {
+                                                selectedRecipeIds + clickedRecipe.id
+                                            }
+                                        }
+                                    )
+                                }
+                            }
+                        }
+                    }
+                    is SavedRecipeListState.Error -> {
+                        Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                            Text("Error loading recipes: ${state.message}", color = Color.Red, textAlign = TextAlign.Center)
+                        }
+                    }
+                    is SavedRecipeListState.Empty -> {
+                        Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                            Text("No recipes available.", color = Color.Gray)
+                        }
+                    }
                 }
-            }
-        }
-    }
+            } // End Recipe Grid Area Box
+        } // End Column
+    } // End Scaffold
 }
 
+
+// --- New Composable for Selectable Card using HomeScreen Style ---
+@OptIn(ExperimentalLayoutApi::class, ExperimentalMaterial3Api::class) // Needed for FlowRow, Card onClick
 @Composable
-fun RecipeItem(
+fun SelectableHomeScreenRecipeCard(
     recipe: Recipe,
     isSelected: Boolean,
-    onRecipeClick: (Recipe) -> Unit
+    onClick: (Recipe) -> Unit
 ) {
     Card(
-        shape = RoundedCornerShape(8.dp),
-        backgroundColor = Color(0xFFF0FFF0),
-        elevation = 1.dp,
+        onClick = { onClick(recipe) }, // Make the whole card clickable
+        shape = RoundedCornerShape(16.dp),
         modifier = Modifier
-            .padding(4.dp)
-            .aspectRatio(1f)
-            .height(175.dp)
-            .clickable { onRecipeClick(recipe) }
+            // .padding(4.dp) // Grid adds spacing
+            .fillMaxWidth()
+            .height(175.dp),
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
+        border = if (isSelected) BorderStroke(2.dp, PrimaryGreen) else null // Highlight border if selected
     ) {
-        Box(modifier = Modifier.fillMaxSize()) {
-            Image(
-                painter = rememberImagePainter(recipe.imageResId),
+        Box { // Use Box to layer card content and selection indicator
+            // --- Start: Copied Content from HomeScreen RecipeCard ---
+            AsyncImage(
+                model = recipe.imageUrl,
                 contentDescription = recipe.name,
-                modifier = Modifier
-                    .fillMaxSize()
-                    .clip(RoundedCornerShape(4.dp)),
+                placeholder = painterResource(R.drawable.greenbackgroundlogo), // Use appropriate placeholder
+                error = painterResource(R.drawable.greenbackgroundlogo),
+                modifier = Modifier.fillMaxSize(),
                 contentScale = ContentScale.Crop
             )
-            Box(
+
+            Box( // Darkening Gradient
                 modifier = Modifier
                     .fillMaxSize()
                     .background(
                         Brush.verticalGradient(
-                            colors = listOf(
-                                Color.Transparent,
-                                Color(60, 179, 107, 0),
-                                Color(26, 77, 46)
-                            )
+                            colors = listOf(Color.Transparent, Color.Black.copy(alpha = 0.8f)),
+                            startY = 200f
                         )
                     )
             )
-            Text(
-                text = recipe.name,
-                fontWeight = FontWeight.Bold,
-                color = Color.White,
-                fontSize = 12.sp,
-                fontFamily = monte,
+            Box( // Optional: Green Overlay Gradient (adjust or remove if needed)
                 modifier = Modifier
-                    .align(Alignment.BottomStart)
-                    .padding(start = 8.dp, bottom = 8.dp)
+                    .fillMaxSize()
+                    .background(Brush.verticalGradient(colors = listOf(Color.Transparent, PrimaryGreen.copy(alpha = 0.6f)) ))
             )
-            Row(
-                horizontalArrangement = Arrangement.spacedBy(2.dp),
-                modifier = Modifier.padding(top = 8.dp, start = 8.dp)
+
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(horizontal = 10.dp, vertical = 8.dp),
+                verticalArrangement = Arrangement.SpaceBetween
             ) {
-                Box(
-                    modifier = Modifier
-                        .background(Color(0x801A4D2E), RoundedCornerShape(8.dp))
-                        .padding(vertical = 2.dp, horizontal = 6.dp)
+                FlowRow(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(4.dp),
+                    verticalArrangement = Arrangement.spacedBy(4.dp)
                 ) {
-                    Text(
-                        text = recipe.nameOfPerson,
-                        fontSize = 8.sp,
-                        fontFamily = latoFont,
-                        fontWeight = FontWeight.Bold,
-                        color = Color.White
-                    )
-                }
-                Spacer(modifier = Modifier.height(4.dp))
-                Box(
-                    modifier = Modifier
-                        .background(Color(0xA0FFFFFF), RoundedCornerShape(8.dp))
-                        .padding(vertical = 2.dp, horizontal = 6.dp)
-                ) {
-                    Text(
-                        text = recipe.category,
-                        fontSize = 8.sp,
-                        fontFamily = monte,
-                        color = Color.Black
-                    )
+                    BadgeChip(text = recipe.nameOfPerson, iconResId = R.drawable.user, iconTint = Color.White, backgroundColor = PrimaryGreen.copy(alpha = 0.8f), textColor = Color.White)
+                    BadgeChip(text = recipe.category, backgroundColor = Color.White.copy(alpha = 0.85f), textColor = Color.Black)
+                    BadgeChip(text = String.format("%.1f", recipe.averageRating), iconResId = R.drawable.star, iconTint = RatingStarColor, backgroundColor = Color.White.copy(alpha = 0.85f), textColor = Color.Black)
                 }
 
-                Box(
-                    modifier = Modifier
-                        .background(Color(0xA0FFFFFF), RoundedCornerShape(8.dp))
-                        .padding(vertical = 2.dp, horizontal = 6.dp)
-                ) {
+                Column {
+                    Text(text = recipe.name, fontWeight = FontWeight.Bold, color = Color.White, fontSize = 14.sp, fontFamily = monte, maxLines = 2, overflow = TextOverflow.Ellipsis)
+                    Spacer(modifier = Modifier.height(4.dp))
                     Row(verticalAlignment = Alignment.CenterVertically) {
-                        Icon(
-                            Icons.Filled.Star,
-                            contentDescription = "Rating",
-                            tint = Color(0xFFFFC107),
-                            modifier = Modifier.size(10.dp)
-                        )
-                        Text(
-                            text = recipe.rating,
-                            fontSize = 8.sp,
-                            fontFamily = monte,
-                            modifier = Modifier.padding(start = 2.dp),
-                            color = Color.Black
-                        )
+                        Icon(painter = painterResource(R.drawable.alarm), contentDescription = "Time", tint = Color.White.copy(alpha = 0.8f), modifier = Modifier.size(12.dp))
+                        Spacer(modifier = Modifier.width(2.dp))
+                        Text(text = recipe.cookingTime.takeIf { it.isNotEmpty() } ?: "-", color = Color.White, fontSize = 10.sp, fontFamily = monte)
+                        Spacer(modifier = Modifier.width(6.dp))
+                        Divider(color = Color.White.copy(alpha = 0.5f), modifier = Modifier.height(12.dp).width(1.dp))
+                        Spacer(modifier = Modifier.width(6.dp))
+                        Icon(painter = painterResource(R.drawable.restaurant), contentDescription = "Serving", tint = Color.White.copy(alpha = 0.8f), modifier = Modifier.size(12.dp))
+                        Spacer(modifier = Modifier.width(2.dp))
+                        Text(text = "${recipe.serving} Serving${if (recipe.serving > 1) "s" else ""}", color = Color.White, fontSize = 10.sp, fontFamily = monte)
                     }
                 }
             }
 
+            // --- Selection Indicator ---
             if (isSelected) {
                 Box(
                     modifier = Modifier
                         .align(Alignment.TopEnd)
-                        .padding(8.dp)
-                        .size(24.dp) // Apply size before background
-                        .background(Color(0xFF4CAF50), RoundedCornerShape(percent = 50)),
+                        .padding(6.dp)
+                        .size(28.dp)
+                        .background(PrimaryGreen, CircleShape), // Use CircleShape
                     contentAlignment = Alignment.Center
                 ) {
                     Icon(
-                        Icons.Filled.Check,
+                        Icons.Default.Check,
                         contentDescription = "Selected",
                         tint = Color.White,
-                        modifier = Modifier.size(16.dp)
+                        modifier = Modifier.size(18.dp)
                     )
                 }
             }
-        }
-    }
+            // --- End Selection Indicator ---
+        } // End Outer Box
+    } // End Card
 }
 
 @Composable
-fun SelectedRecipesBar(selectedRecipes: List<Recipe>) {
-    MyApplicationTheme {
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .background(MaterialTheme.colorScheme.primaryContainer)
-                .padding(vertical = 8.dp)
-        ) {
+fun SelectedRecipesBar(
+    selectedRecipes: List<Recipe>,
+    onUnselect: (recipeId: String) -> Unit,
+    modifier: Modifier = Modifier
+) {
+    Surface( // Use Surface for elevation and background
+        modifier = modifier.fillMaxWidth(),
+        shadowElevation = 4.dp, // Add some shadow to lift it
+        color = Color(96,137,99) // Use a theme color
+    ) {
+        Column(modifier = Modifier.padding(vertical = 8.dp, horizontal = 16.dp)) {
             Text(
-                "Selected",
-                fontWeight = FontWeight.SemiBold,
+                text = "Selected Recipes (${selectedRecipes.size})",
                 fontFamily = monte,
-                color = Color(0xFF1A4D2E),
-                modifier = Modifier.padding(start = 16.dp, bottom = 4.dp)
+                fontWeight = FontWeight.Bold,
+                fontSize = 14.sp,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.padding(bottom = 8.dp)
             )
             LazyRow(
-                contentPadding = PaddingValues(horizontal = 16.dp),
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
-                items(selectedRecipes.size) { index ->
-                    Image(
-                        painter = painterResource(id = selectedRecipes[index].imageResId),
-                        contentDescription = selectedRecipes[index].name,
-                        modifier = Modifier
-                            .size(64.dp)
-                            .clip(RoundedCornerShape(4.dp))
-                    )
-                }
-            }
-        }
-    }
-}
-
-@Composable
-fun NamingCollectionScreen(navController: NavController) {
-    var collectionName by remember { mutableStateOf("") }
-
-    Scaffold(
-        topBar = {
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(16.dp),
-                horizontalArrangement = Arrangement.SpaceBetween,
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                // Back Button
-                IconButton(onClick = { navController.popBackStack() }) {
-                    Icon(
-                        Icons.Filled.ArrowBack,
-                        contentDescription = "Back",
-                        tint = Color(0xFF1B5E20) // Dark Green
-                    )
+                items(selectedRecipes, key = { it.id }) { recipe ->
+                    SelectedRecipeChip(recipe = recipe, onUnselect = { onUnselect(recipe.id) })
                 }
-
-                // Title
-                Text(
-                    text = "New Collection",
-                    fontSize = 24.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = Color(0xFF1B5E20), // Dark Green
-                    fontFamily = monte
-                )
-
-                // Check Button
-                IconButton(onClick = {}) {
-                    Icon(
-                        Icons.Filled.Check,
-                        contentDescription = "Check",
-                        tint = Color(0xFF1B5E20) // Dark Green
-                    )
-                }
-            }
-        }
-    ) { paddingValues ->
-        Column(
-            modifier = Modifier
-                .padding(paddingValues)
-                .padding(16.dp),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(16.dp)
-        ) {
-            OutlinedTextField(
-                value = collectionName,
-                onValueChange = { collectionName = it },
-                label = { Text("Collection Name", fontFamily = monte) },
-                modifier = Modifier.fillMaxWidth()
-            )
-            Button(onClick = {
-                // TODO: Save the collection name and selected recipes
-                // Optionally navigate back to the main screen
-            }) {
-                Text("Create Collection", fontFamily = monte)
             }
         }
     }
 }
 
-@Preview(showBackground = true)
+// --- Composable for a single item in the SelectedRecipesBar ---
 @Composable
-fun NewCollectionScreenPreview() {
-    MyApplicationTheme {
-        NewCollectionScreen(
-            onNavigateToNaming = { /* Do nothing for preview */ },
-            navController = rememberNavController()
-        )
+fun SelectedRecipeChip(
+    recipe: Recipe,
+    onUnselect: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    Box(modifier = modifier) {
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier
+                .height(40.dp) // Fixed height for chips
+                .background(Color(32,137,99), RoundedCornerShape(20.dp))
+                .clip(RoundedCornerShape(20.dp))
+                .padding(start = 6.dp, end = 4.dp) // Adjust padding
+        ) {
+            AsyncImage(
+                model = recipe.imageUrl,
+                contentDescription = null, // Decorative
+                placeholder = painterResource(R.drawable.greenbackgroundlogo),
+                error = painterResource(R.drawable.greenbackgroundlogo),
+                contentScale = ContentScale.Crop,
+                modifier = Modifier
+                    .size(28.dp) // Smaller image size
+                    .clip(CircleShape)
+            )
+            Spacer(modifier = Modifier.width(6.dp))
+            Text(
+                text = recipe.name,
+                fontSize = 12.sp,
+                fontFamily = monte,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+                color = MaterialTheme.colorScheme.onSecondaryContainer,
+                modifier = Modifier.weight(1f, fill = false) // Allow text to shrink if needed but don't force fill
+            )
+            Spacer(modifier = Modifier.width(4.dp))
+            IconButton(
+                onClick = onUnselect,
+                modifier = Modifier.size(24.dp) // Smaller icon button
+            ) {
+                Icon(
+                    Icons.Default.Close,
+                    contentDescription = "Remove ${recipe.name}",
+                    tint = MaterialTheme.colorScheme.onSecondaryContainer.copy(alpha = 0.7f),
+                    modifier = Modifier.size(16.dp) // Smaller icon
+                )
+            }
+        }
     }
 }
-
 

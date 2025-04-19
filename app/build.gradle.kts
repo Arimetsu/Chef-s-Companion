@@ -87,6 +87,7 @@ dependencies {
     implementation ("androidx.compose.foundation:foundation:1.6.0")
     implementation("io.coil-kt:coil-compose:2.6.0")
     implementation(kotlin("stdlib-jdk8"))
+    implementation("com.google.code.gson:gson:2.10.1")
 
     // Import the Firebase BoM
     implementation (platform("com.google.firebase:firebase-bom:32.7.0"))
