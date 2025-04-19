@@ -45,6 +45,9 @@ import com.example.myapplication.front_end.home.BadgeChip // Assuming BadgeChip 
 import com.example.myapplication.front_end.home.RatingStarColor // Assuming RatingStarColor is accessible or defined here
 import com.example.myapplication.front_end.home.bb2 // Assuming fonts are accessible or defined here
 import com.example.myapplication.front_end.home.monte // Assuming fonts are accessible or defined here
+import com.example.myapplication.front_end.ScreenNavigation
+import com.example.myapplication.front_end.home.NavBar
+import com.example.myapplication.front_end.home.monte
 import com.example.myapplication.ui.theme.MyApplicationTheme
 import com.example.myapplication.viewModel.SavedRecipeListState
 import com.example.myapplication.viewModel.SavedRecipesViewModel
@@ -68,6 +71,7 @@ fun NewCollectionScreen(
     val allRecipesState by savedRecipesViewModel.allRecipesState.collectAsStateWithLifecycle()
     var selectedRecipeIds by remember { mutableStateOf(emptySet<String>()) }
     var searchQuery by remember { mutableStateOf("") }
+    var selectedTab by remember { mutableStateOf(1) }
 
     // Derived state to get the actual Recipe objects for selected IDs
     val selectedRecipes = remember(allRecipesState, selectedRecipeIds) {
@@ -86,7 +90,8 @@ fun NewCollectionScreen(
                 modifier = Modifier
                     .fillMaxWidth()
                     .background(Color.White)
-                    .padding(horizontal = 8.dp, vertical = 4.dp),
+                    .padding(16.dp)
+                    .padding(top = 40.dp),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
@@ -312,7 +317,6 @@ fun SelectableHomeScreenRecipeCard(
                     }
                 }
             }
-            // --- End: Copied Content ---
 
             // --- Selection Indicator ---
             if (isSelected) {
@@ -337,7 +341,6 @@ fun SelectableHomeScreenRecipeCard(
     } // End Card
 }
 
-// --- New Composable for the Bottom Bar showing selected recipes ---
 @Composable
 fun SelectedRecipesBar(
     selectedRecipes: List<Recipe>,

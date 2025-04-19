@@ -72,6 +72,7 @@ fun InteractionSearchScreen(
                 modifier = Modifier
                     .fillMaxWidth()
                     .background(Color.White)
+                    .padding(top = 56.dp)
             ) {
                 SearchBar(
                     query = searchQuery,

@@ -85,7 +85,7 @@ fun YourRecipeScreen(
                 },
                 backgroundColor = Color.White,
                 elevation = 0.dp,
-                modifier = Modifier.padding(start = 16.dp, top = 8.dp, end = 16.dp) // Adjust padding
+                modifier = Modifier.padding(start = 16.dp, top = 56.dp, end = 16.dp) // Adjust padding
             )
         },
         bottomBar = {
@@ -97,7 +97,7 @@ fun YourRecipeScreen(
                     1 -> { /* Already on Saved Recipes */ }
                     2 -> navController.navigate(ScreenNavigation.Screen.AddRecipe.route)
                     3 -> navController.navigate(ScreenNavigation.Screen.MealPlan.route)
-                    4 -> { /* Handle User Profile navigation */ }
+                    4 -> navController.navigate(ScreenNavigation.Screen.UserProfile.route)
                 }
             })
         },
@@ -111,7 +111,7 @@ fun YourRecipeScreen(
                         Button( onClick = { isFabExpanded = false; navController.navigate(ScreenNavigation.Screen.NewCollection.route) }, shape = RoundedCornerShape(8.dp), colors = ButtonDefaults.buttonColors(backgroundColor = Color(0xFF2196F3), contentColor = Color.White), elevation = ButtonDefaults.elevation(defaultElevation = 4.dp) ) { Text("Add Collection", fontFamily = monte) }
                     }
                 }
-                FloatingActionButton(modifier = Modifier.background(Color.White), onClick = { isFabExpanded = !isFabExpanded }, backgroundColor = PrimaryGreen, contentColor = Color.White ) { Icon(Icons.Default.Add, contentDescription = "Add") }
+                FloatingActionButton(modifier = Modifier.background(Color.White), onClick = { isFabExpanded = !isFabExpanded }, backgroundColor = PrimaryGreen, contentColor = Color.White ) { Icon(Icons.Default.Add, contentDescription = "Add", tint = Color.White) }
             }
         }
     ) { paddingValues ->

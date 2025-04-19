@@ -82,7 +82,7 @@ fun HomeScreen(
                     1 -> navController.navigate(ScreenNavigation.Screen.YourRecipes.route)
                     2 -> navController.navigate(ScreenNavigation.Screen.AddRecipe.route) // Navigate to Add Recipe
                     3 -> navController.navigate(ScreenNavigation.Screen.MealPlan.route)
-                    4 -> { /* Handle User Profile navigation */ }
+                    4 -> navController.navigate(ScreenNavigation.Screen.UserProfile.route)
                 }
             })
         }
