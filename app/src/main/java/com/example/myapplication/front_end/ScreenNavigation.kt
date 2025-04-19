@@ -15,12 +15,19 @@ sealed class ScreenNavigation(val Route: String) {
         // Main App
         object Home : Screen("home")
         object YourRecipes : Screen("yourRecipes")
+        object CollectionDetail : Screen("collection_detail/{collectionId}") { // NEW
+            fun createRoute(collectionId: String) = "collection_detail/$collectionId"
+        }
         object Notification : Screen("Notification")
         object NewCollection : Screen("newCollection")
-        object NamingCollection : Screen("namingCollection")
+
+        object NamingCollection : Screen("namingCollection/{recipeIds}") { // Add argument placeholder
+            fun createRoute(recipeIds: String) = "namingCollection/$recipeIds" // Helper to build route
+        }
         object AddRecipe : Screen("addRecipe")
         object SearchRecipe : Screen("searchRecipe")
         object SearchResult : Screen("searchResult")
+
 
         // Meal Plan
         object MealPlan : Screen("mealPlan")
@@ -28,6 +35,23 @@ sealed class ScreenNavigation(val Route: String) {
             fun createRoute(mealType: String) = "addMealsToMealPlan/$mealType"
         }
         object AddMealPlan : Screen("addMealPlan")
+
+        //Clicking the Recipe Card
+        object RecipeDetail : Screen("recipeDetail/{recipeId}") { // Note the argument placeholder
+            fun createRoute(recipeId: String) = "recipeDetail/$recipeId"
+        }
+
+        companion object {
+            fun fromRoute(route: String?): Screen? {
+                return when (route?.substringBefore("/")) {
+                    YourRecipes.route.substringBefore("/") -> YourRecipes
+                    CollectionDetail.route.substringBefore("/") -> CollectionDetail // NEW
+                    NewCollection.route.substringBefore("/") -> NewCollection
+                    NamingCollection.route.substringBefore("/") -> NamingCollection
+                    else -> null
+                }
+            }
+        }
     }
 
 }

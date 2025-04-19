@@ -1,538 +1,313 @@
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
-import androidx.compose.animation.slideInVertically
-import androidx.compose.animation.slideOutVertically
+package com.example.myapplication.front_end // Adjust package as needed
+
+import androidx.compose.animation.*
 import androidx.compose.foundation.BorderStroke
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.GridCells.*
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
-import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.foundation.lazy.grid.items // Use items extension for LazyVerticalGrid
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.*
+import androidx.compose.material.* // Using Material 2 components here
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.FavoriteBorder
-import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Star
-import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.Icon // Using Material 3 Icon
+import androidx.compose.material3.IconButton // Using Material 3 IconButton
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import coil.compose.rememberImagePainter
-import com.example.myapplication.R
-import com.example.myapplication.front_end.home.monte
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
-import com.example.myapplication.data.Recipe
-import com.example.myapplication.front_end.ScreenNavigation
-import com.example.myapplication.front_end.home.NavBar
+import coil.compose.AsyncImage // Import AsyncImage
+import com.example.myapplication.R
+import com.example.myapplication.data.Recipe // UI Model
+import com.example.myapplication.data.UserCollection // Import collection data class
+import com.example.myapplication.front_end.home.monte // Assuming font is here
+import com.example.myapplication.front_end.home.NavBar // Reusing NavBar? Or define locally
+import com.example.myapplication.front_end.home.bb2
+import com.example.myapplication.viewModel.RecipeFilters
+import com.example.myapplication.viewModel.SavedRecipeListState
+import com.example.myapplication.viewModel.SavedRecipesViewModel // Import the new ViewModel
+import com.example.myapplication.viewModel.UserCollectionState
+import androidx.compose.foundation.lazy.items
 
-val recipes = listOf(
-    Recipe("Veni", "Spicy Firecracker Beef", R.drawable.tryfood, "9.5", "Lunch", "1 Hour", 5, false),
-    Recipe("Vennidicto Cruz Aack", "Chicken Fajitas", R.drawable.tryfood, "9.2", "Dinner", "30 min", 1, false),
-    Recipe("Vennidict", "Canned Tuna Pasta", R.drawable.tryfood, "9.3", "Breakfast", "30 min", 1, false),
-    Recipe("Vennidict", "Canned Tuna Pasta", R.drawable.tryfood, "9.3", "Lunch", "30 min", 1, true),
-    Recipe("Vennidict", "Canned Tuna Pasta", R.drawable.tryfood, "9.3", "Lunch", "30 min", 1, true),
-    Recipe("Vennidict", "Canned Tuna Pasta", R.drawable.tryfood, "9.3", "Lunch", "30 min", 1, true),
-    Recipe("Vennidict", "Canned Tuna Pasta", R.drawable.tryfood, "9.3", "Lunch", "30 min", 1, true)
-)
+// Define colors if not already global
+val PrimaryGreen = Color(0xFF1A4D2E)
+val RatingStarColor = Color(0xFFFFC107)
 
-
-
+@OptIn(ExperimentalAnimationApi::class) // For AnimatedVisibility
 @Composable
-fun YourRecipeScreen(navController: NavHostController) {
-    val savedRecipes = remember {
-        mutableStateListOf(
-            Recipe("John Doe", "Delicious Pasta", R.drawable.tryfood, "4.5", "Lunch", "30 mins", 2, true),
-            Recipe("Jane Smith", "Easy Salad", R.drawable.tryfood, "4.8", "Lunch", "15 mins", 1, false),
-            Recipe("Peter Jones", "Morning Toast", R.drawable.tryfood, "4.2", "Breakfast", "5 mins", 1, true),
-            Recipe("Alice Brown", "Sweet Pancakes", R.drawable.tryfood, "4.9", "Breakfast", "20 mins", 2, true),
-            Recipe("Charlie Green", "Roasted Chicken", R.drawable.tryfood, "4.7", "Dinner", "60 mins", 4, false),
-            Recipe("Diana White", "Simple Soup", R.drawable.tryfood, "4.6", "Dinner", "45 mins", 3, false),
-            Recipe("Eve Black", "Fruity Smoothie", R.drawable.tryfood, "4.4", "Breakfast", "10 mins", 1, false),
-            Recipe("Frank Gray", "Grilled Salmon", R.drawable.tryfood, "4.8", "Dinner", "25 mins", 2, true),
-            Recipe("Grace Blue", "Quick Noodles", R.drawable.tryfood, "4.3", "Lunch", "12 mins", 1, false),
-            Recipe("Henry Red", "Baked Potatoes", R.drawable.tryfood, "4.5", "Dinner", "50 mins", 3, true),
-            Recipe("Ivy Gold", "Berry Yogurt", R.drawable.tryfood, "4.7", "Breakfast", "8 mins", 1, false),
-            Recipe("Jack Silver", "Vegetable Curry", R.drawable.tryfood, "4.6", "Lunch", "40 mins", 2, true),
-            Recipe("Jack Silver", "Vegetable Curry", R.drawable.tryfood, "4.6", "Secret", "40 mins", 2, false),
-        )
-    }
+fun YourRecipeScreen(
+    navController: NavHostController,
+    savedRecipesViewModel: SavedRecipesViewModel = viewModel() // Inject ViewModel
+) {
+    // Observe states from ViewModel
+    val collectionState by savedRecipesViewModel.userCollectionsState.collectAsStateWithLifecycle()
+    val recipeListState by savedRecipesViewModel.savedRecipeListState.collectAsStateWithLifecycle()
 
-    var selectedCollectionFilter by remember { mutableStateOf("Collection") }
-    var search by remember { mutableStateOf("") }
-    var selectedTab by remember { mutableStateOf(1) }
+    // State for UI interaction
+    var selectedCollectionFilter by remember { mutableStateOf<String>(RecipeFilters.ALL) } // Start with "All"
+    var selectedTab by remember { mutableStateOf(1) } // Saved recipes tab is index 1
     var isFabExpanded by remember { mutableStateOf(false) }
 
-    val groupedRecipes = remember(savedRecipes) {
-        savedRecipes.groupBy { it.category }
-    }
 
     Scaffold(
         topBar = {
-            Column(
-                modifier = Modifier.padding(16.dp)
-            ) {
-                TopAppBar(
-                    title = {
-                        Text(
-                            "Your Recipe",
-                            color = Color(0xFF1A4D2E),
-                            fontWeight = FontWeight(700),
-                            fontSize = 32.sp,
-                            fontFamily = monte
-                        )
-                    },
-                    backgroundColor = Color.White,
-                    elevation = 0.dp
-                )
-            }
+            TopAppBar(
+                title = {
+                    androidx.compose.material.Text(
+                        text = "Your Recipe",
+                        fontSize = 24.sp,
+                        fontWeight = FontWeight.Bold,
+                        fontFamily = bb2,
+                        color = PrimaryGreen
+                    )
+                },
+                backgroundColor = Color.White,
+                elevation = 0.dp,
+                modifier = Modifier.padding(start = 16.dp, top = 8.dp, end = 16.dp) // Adjust padding
+            )
         },
         bottomBar = {
-
-            NavBar(selectedItem = selectedTab, onItemSelected = {
-                selectedTab = it
-                if (it == 0) { // Index 0 corresponds to "Home"
-                    navController.navigate(ScreenNavigation.Screen.Home.route)
-                }
-                else if (it == 3) {
-                    navController.navigate(ScreenNavigation.Screen.MealPlan.route)
+            // Assuming NavBar is reusable and takes selectedItem/onItemSelected
+            NavBar(selectedItem = selectedTab, onItemSelected = { index ->
+                selectedTab = index
+                when (index) {
+                    0 -> navController.navigate(ScreenNavigation.Screen.Home.route) { popUpTo(ScreenNavigation.Screen.Home.route) { inclusive = true } } // Navigate Home
+                    1 -> { /* Already on Saved Recipes */ }
+                    2 -> navController.navigate(ScreenNavigation.Screen.AddRecipe.route)
+                    3 -> navController.navigate(ScreenNavigation.Screen.MealPlan.route)
+                    4 -> { /* Handle User Profile navigation */ }
                 }
             })
-        },floatingActionButtonPosition = FabPosition.End, // Ensure FAB is at the end (right)
-        floatingActionButton = {
+        },
+        floatingActionButtonPosition = FabPosition.End,
+        floatingActionButton = { // Keep FAB logic
             Row(verticalAlignment = Alignment.Bottom) {
-                AnimatedVisibility(
-                    visible = isFabExpanded,
-                    enter = slideInVertically(initialOffsetY = { -it }) + fadeIn(), // Slide in from above
-                    exit = slideOutVertically(targetOffsetY = { -it }) + fadeOut() // Slide out upwards
-                ) {
-                    Column(
-                        horizontalAlignment = Alignment.End, // Keep alignment for the buttons
-                        verticalArrangement = Arrangement.spacedBy(8.dp),
-                        modifier = Modifier.padding(end = 8.dp, bottom = 16.dp) // Adjust end padding
-                    ) {
-                        Box(
-                            contentAlignment = Alignment.CenterEnd
-                        ) {
-                            Button(
-                                onClick = {
-                                    isFabExpanded = false
-                                    // TODO: Handle "Recipe" click
-                                },
-                                shape = RoundedCornerShape(8.dp),
-                                colors = ButtonDefaults.buttonColors(
-                                    backgroundColor = Color(0xFF4CAF50),
-                                    contentColor = Color.White
-                                ),
-                                elevation = ButtonDefaults.elevation(defaultElevation = 4.dp)
-                            ) {
-                                Text("Recipe Finder", fontFamily = monte)
-                            }
-                        }
-                        Button(
-                            onClick = {
-                                isFabExpanded = false
-                                // TODO: Handle "Recipe" click
-                                navController.navigate("addRecipe")
-                            },
-                            shape = RoundedCornerShape(8.dp),
-                            colors = ButtonDefaults.buttonColors(
-                                backgroundColor = Color(0xFF4CAF50),
-                                contentColor = Color.White
-                            ),
-                            elevation = ButtonDefaults.elevation(defaultElevation = 4.dp)
-                        ) {
-                            Text("Recipe", fontFamily = monte)
-                        }
-                        Button(
-                            onClick = {
-                                isFabExpanded = false
-                                // TODO: Handle "Collection" click
-                                navController.navigate(ScreenNavigation.Screen.NewCollection.route)
-                            },
-                            shape = RoundedCornerShape(8.dp),
-                            colors = ButtonDefaults.buttonColors(
-                                backgroundColor = Color(0xFF2196F3),
-                                contentColor = Color.White
-                            ),
-                            elevation = ButtonDefaults.elevation(defaultElevation = 4.dp)
-                        ) {
-                            Text("Collection", fontFamily = monte)
-                        }
+                AnimatedVisibility( visible = isFabExpanded, enter = slideInVertically { -it } + fadeIn(), exit = slideOutVertically { -it } + fadeOut() ) {
+                    Column( horizontalAlignment = Alignment.End, verticalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.padding(end = 8.dp, bottom = 16.dp) ) {
+                        Button( onClick = { isFabExpanded = false; /* TODO: Handle "Recipe Finder" */ }, shape = RoundedCornerShape(8.dp), colors = ButtonDefaults.buttonColors(backgroundColor = Color(0xFF4CAF50), contentColor = Color.White), elevation = ButtonDefaults.elevation(defaultElevation = 4.dp) ) { Text("Recipe Finder", fontFamily = monte) }
+                        Button( onClick = { isFabExpanded = false; navController.navigate(ScreenNavigation.Screen.AddRecipe.route) }, shape = RoundedCornerShape(8.dp), colors = ButtonDefaults.buttonColors(backgroundColor = Color(0xFF4CAF50), contentColor = Color.White), elevation = ButtonDefaults.elevation(defaultElevation = 4.dp) ) { Text("Add Recipe", fontFamily = monte) }
+                        Button( onClick = { isFabExpanded = false; navController.navigate(ScreenNavigation.Screen.NewCollection.route) }, shape = RoundedCornerShape(8.dp), colors = ButtonDefaults.buttonColors(backgroundColor = Color(0xFF2196F3), contentColor = Color.White), elevation = ButtonDefaults.elevation(defaultElevation = 4.dp) ) { Text("Add Collection", fontFamily = monte) }
                     }
                 }
-                FloatingActionButton(
-                    onClick = { isFabExpanded = !isFabExpanded },
-                    backgroundColor = Color(0xFF1A4D2E),
-                    contentColor = Color.White
-                ) {
-                    Icon(Icons.Default.Add, contentDescription = "Add")
-                }
+                FloatingActionButton(modifier = Modifier.background(Color.White), onClick = { isFabExpanded = !isFabExpanded }, backgroundColor = PrimaryGreen, contentColor = Color.White ) { Icon(Icons.Default.Add, contentDescription = "Add") }
             }
         }
     ) { paddingValues ->
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(paddingValues)
-                .padding(horizontal = 16.dp)
+                .padding(paddingValues) // Apply scaffold padding
+                .padding(horizontal = 16.dp) // Apply horizontal padding for content
                 .background(Color.White)
         ) {
-
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(8.dp)
-                    .border(BorderStroke(2.dp, Color(0xFFD9D9D9)), RoundedCornerShape(24.dp))
-                    .clickable(onClick = { navController.navigate("searchRecipe")})
-                    .padding(8.dp)
-                    .background(Color.Transparent),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.Start,
-            ) {
-                Icon(
-                    imageVector = Icons.Filled.Search,
-                    contentDescription = "Search",
-                    tint = Color.Gray
-                )
+            // Search Bar (Keep existing)
+            Row( modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp) .border(BorderStroke(1.dp, Color(0xFFD9D9D9)), RoundedCornerShape(24.dp)).clickable { /* TODO: Implement Search Navigation/UI */ }.padding(horizontal = 16.dp, vertical = 12.dp), verticalAlignment = Alignment.CenterVertically ) {
+                Icon( Icons.Filled.Search, contentDescription = "Search", tint = Color.Gray )
                 Spacer(modifier = Modifier.width(8.dp))
-                Text(
-                    text = "Search for a recipe",
-                    color = Color.Gray,
-                    fontFamily = monte
-                )
+                Text( "Search your saved recipes", color = Color.Gray, fontFamily = monte )
             }
-            Spacer(modifier = Modifier.height(16.dp))
-            Text(
-                "Collection",
-                fontSize = 20.sp,
-                fontFamily = monte,
-                fontWeight = FontWeight(600),
-            )
-            Spacer(modifier = Modifier.height(8.dp))
-            LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                item {
-                    FilterChip(text = "Filter", isSelected = false, onSelected = { /* TODO: Handle filter */ })
-                }
-                item {
-                    CollectionChip(
-                        text = "Collection",
-                        isSelected = selectedCollectionFilter == "Collection",
-                        onSelected = { selectedCollectionFilter = "Collection" })
-                }
-                item {
-                    CollectionChip(
-                        text = "All",
-                        isSelected = selectedCollectionFilter == "All",
-                        onSelected = { selectedCollectionFilter = "All" })
-                }
-                item {
-                    CollectionChip(
-                        text = "Favorites",
-                        isSelected = selectedCollectionFilter == "Favorites",
-                        onSelected = { selectedCollectionFilter = "Favorites" })
-                }
-            }
-            Spacer(modifier = Modifier.height(16.dp))
 
-            if (selectedCollectionFilter == "Collection") {
-                LazyVerticalGrid(
-                    columns = GridCells.Fixed(2), // Two folders per row
-                    verticalArrangement = Arrangement.spacedBy(8.dp),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    groupedRecipes.forEach { (category, recipes) ->
+            Spacer(modifier = Modifier.height(16.dp))
+            Text( "Collections", fontSize = 20.sp, fontFamily = monte, fontWeight = FontWeight(600) )
+            Spacer(modifier = Modifier.height(8.dp))
+
+            // Collection/Filter Chips Row
+            when (val state = collectionState) {
+                is UserCollectionState.Loading -> {
+                    CircularProgressIndicator(modifier = Modifier.size(24.dp))
+                }
+                is UserCollectionState.Success -> {
+                    LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        // "All" Chip
                         item {
-                            RecipeCategoryFolder(category = category, recipes = recipes.take(4)) // Pass only the first 4
+                            CollectionChip(
+                                displayText = RecipeFilters.ALL,
+                                filterValue = RecipeFilters.ALL,
+                                isSelected = selectedCollectionFilter == RecipeFilters.ALL,
+                                onSelected = { filter ->
+                                    selectedCollectionFilter = filter
+                                    savedRecipesViewModel.fetchRecipesForDisplay(filter)
+                                }
+                            )
+                        }
+                        // "Favorites" Chip
+                        item {
+                            CollectionChip(
+                                displayText = RecipeFilters.FAVORITES,
+                                filterValue = RecipeFilters.FAVORITES,
+                                isSelected = selectedCollectionFilter == RecipeFilters.FAVORITES,
+                                onSelected = { filter ->
+                                    selectedCollectionFilter = filter
+                                    savedRecipesViewModel.fetchRecipesForDisplay(filter)
+                                }
+                            )
+                        }
+                        // Dynamic Collection Chips
+                        items(state.collections.filterNot { it.name.equals(RecipeFilters.FAVORITES, true) }) { collection ->
+                            CollectionChip(
+                                displayText = collection.name,
+                                filterValue = collection.id, // Use ID for filtering
+                                isSelected = selectedCollectionFilter == collection.id,
+                                onSelected = { filterId ->
+                                    selectedCollectionFilter = filterId
+                                    savedRecipesViewModel.fetchRecipesForDisplay(filterId)
+                                }
+                            )
                         }
                     }
                 }
-            } else if(selectedCollectionFilter == "All") {
-                LazyVerticalGrid(
-                    columns = GridCells.Fixed(2),
-                    verticalArrangement = Arrangement.spacedBy(8.dp),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    val recipesToDisplay = if (selectedCollectionFilter == "All") {
-                        savedRecipes
-                    } else {
-                        savedRecipes.filter { it.category.equals(selectedCollectionFilter, ignoreCase = true) }
-                    }
-                    items(recipesToDisplay) { recipe ->
-                        RecipeCard(recipe = recipe)
-                    }
-                }
-            }
-            else if (selectedCollectionFilter == "Favorites") {
-                LazyVerticalGrid(
-                    columns = GridCells.Fixed(2),
-                    verticalArrangement = Arrangement.spacedBy(8.dp),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    val favoriteRecipes = savedRecipes.filter { it.favorite } // This line checks the boolean
-                    items(favoriteRecipes) { recipe ->
-                        RecipeCard(recipe = recipe)
-                    }
+                is UserCollectionState.Error -> {
+                    Text("Error loading collections", color = Color.Red)
                 }
             }
 
+            Spacer(modifier = Modifier.height(16.dp))
+
+            // Recipe Grid - Display based on savedRecipeListState
+            when (val state = recipeListState) {
+                is SavedRecipeListState.Loading -> {
+                    Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) { CircularProgressIndicator(color = PrimaryGreen) }
+                }
+                is SavedRecipeListState.Success -> {
+                    if (state.recipes.isEmpty()) {
+                        Box(Modifier.fillMaxSize().padding(top = 32.dp), contentAlignment = Alignment.Center) {
+                            Text(when(selectedCollectionFilter){
+                                RecipeFilters.ALL -> "You haven't saved any recipes yet."
+                                RecipeFilters.FAVORITES -> "You haven't favorited any recipes yet."
+                                else -> "No recipes in this collection."
+                            }, color = Color.Gray, fontFamily = monte, textAlign = TextAlign.Center)
+                        }
+                    } else {
+                        LazyVerticalGrid( columns = Fixed(2), verticalArrangement = Arrangement.spacedBy(8.dp), horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.fillMaxSize() ) {
+                            items(state.recipes, key = { it.id }) { recipe ->
+                                SavedRecipeCard( recipe = recipe, onCardClick = { navController.navigate(ScreenNavigation.Screen.RecipeDetail.createRoute(recipe.id)) }, onFavoriteClick = { savedRecipesViewModel.toggleFavoriteStatus(recipe.id, recipe.favorite) } )
+                            }
+                        }
+                    }
+                }
+                is SavedRecipeListState.Error -> {
+                    Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) { Text("Error loading recipes: ${state.message}", color = Color.Red, textAlign = TextAlign.Center) }
+                }
+
+                SavedRecipeListState.Empty -> TODO()
+            }
         }
     }
 }
 
+// --- Filter/Collection Chip (Keep Existing) ---
 @Composable
-fun RecipeCategoryFolder(category: String, recipes: List<Recipe>) {
+fun CollectionChip(
+    displayText: String,
+    filterValue: String,
+    isSelected: Boolean,
+    onSelected: (String) -> Unit
+) {
+    Button(
+        onClick = { onSelected(filterValue) },
+        shape = RoundedCornerShape(16.dp),
+        colors = ButtonDefaults.buttonColors(
+            backgroundColor = if (isSelected) PrimaryGreen else PrimaryGreen.copy(alpha = 0.1f),
+            contentColor = if (isSelected) Color.White else PrimaryGreen
+        ),
+        contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
+        elevation = ButtonDefaults.elevation(0.dp),
+        border = if (!isSelected) BorderStroke(1.dp, PrimaryGreen.copy(alpha = 0.5f)) else null
+    ) {
+        Text(displayText, fontSize = 12.sp, fontFamily = monte)
+    }
+}
+
+// --- Recipe Card specific for Saved Recipes Screen ---
+@Composable
+fun SavedRecipeCard(
+    recipe: Recipe,
+    onCardClick: () -> Unit,
+    onFavoriteClick: () -> Unit
+) {
     Card(
         shape = RoundedCornerShape(8.dp),
-        backgroundColor = Color(0xFFF0FFF0),
-        elevation = 1.dp,
+        backgroundColor = Color(0xFFF5F5F5), // Slightly different background maybe
+        elevation = 2.dp,
         modifier = Modifier
-            .fillMaxWidth()
-            .aspectRatio(1f) // Make the folder card square
+            .padding(4.dp)
+            // .aspectRatio(0.8f) // Adjust aspect ratio if needed
+            .height(200.dp) // Slightly taller card?
+            .clickable(onClick = onCardClick)
     ) {
-        Column(modifier = Modifier.padding(8.dp)) {
-            Text(
-                text = category,
-                fontWeight = FontWeight(600),
-                fontSize = 16.sp,
-                fontFamily = monte,
-                modifier = Modifier.padding(bottom = 8.dp)
-            )
-            if (recipes.isNotEmpty()) {
-                Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                    Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
-                        if (recipes.size >= 1) SmallRecipeCard(recipe = recipes[0])
-                        if (recipes.size >= 2) SmallRecipeCard(recipe = recipes[1])
-                    }
-                    Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
-                        if (recipes.size >= 3) SmallRecipeCard(recipe = recipes[2])
-                        if (recipes.size >= 4) SmallRecipeCard(recipe = recipes[3])
-                    }
-                }
-            } else {
-                Box(
-                    modifier = Modifier.fillMaxSize(),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Text("No recipes in $category")
-                }
-            }
-        }
-    }
-}
-
-@Composable
-fun SmallRecipeCard(recipe: Recipe) {
-
-    Card(
-        shape = RoundedCornerShape(4.dp),
-        backgroundColor = Color(0xFFE0EEE0),
-        elevation = 1.dp,
-        modifier = Modifier
-            .width(65.dp)  // Ensures it fills available width
-            .aspectRatio(1f) // Adjusts the aspect ratio (2:1, width:height)
-            .clickable { /* Handle click on individual preview */ }
-    ) {
-        Box(
-            modifier = Modifier.fillMaxSize(),
-            contentAlignment = Alignment.Center
-        ) {
-            // Image inside the Box with full size and rounded corners
-            Image(
-                painter = rememberImagePainter(recipe.imageResId),
+        Box(modifier = Modifier.fillMaxSize()) {
+            AsyncImage(
+                model = recipe.imageUrl,
                 contentDescription = recipe.name,
-                modifier = Modifier
-                    .fillMaxSize()
-                    .clip(RoundedCornerShape(4.dp)),
+                placeholder = painterResource(R.drawable.greenbackgroundlogo),
+                error = painterResource(R.drawable.greenbackgroundlogo), // Use consistent placeholder on error
+                modifier = Modifier.fillMaxSize(),
                 contentScale = ContentScale.Crop
             )
-
-            // Box overlay for the gradient and text
-            Box(
+            Box( // Gradient Overlay
                 modifier = Modifier
                     .fillMaxSize()
-                    .background(
-                        Brush.verticalGradient(
-                            colors = listOf(
-                                Color.Transparent,
-                                Color(0xFF698B69).copy(alpha = 0.3f),
-                                Color(0xFF1A4D2E).copy(alpha = 0.5f)
-                            )
-                        )
-                    )
+                    .background(Brush.verticalGradient( colors = listOf(Color.Transparent, Color.Black.copy(alpha = 0.6f)), startY = 300f )) // Darker gradient?
+            )
+            // Favorite button top right
+            IconButton(
+                onClick = onFavoriteClick,
+                modifier = Modifier
+                    .align(Alignment.TopEnd)
+                    .padding(4.dp)
+                    .background(Color.Black.copy(alpha = 0.3f), CircleShape) // Semi-transparent background
+            ) {
+                Icon(
+                    imageVector = if (recipe.favorite) Icons.Filled.Favorite else Icons.Filled.FavoriteBorder,
+                    contentDescription = "Favorite",
+                    tint = if (recipe.favorite) Color.Red else Color.White, // Red when favorite
+                    modifier = Modifier.size(20.dp)
+                )
+            }
+
+            // Content bottom left
+            Column(
+                modifier = Modifier
+                    .align(Alignment.BottomStart)
+                    .padding(8.dp)
             ) {
                 Text(
                     text = recipe.name,
                     fontWeight = FontWeight.Bold,
                     color = Color.White,
-                    fontSize = 10.sp, // Adjusted font size for sneak peek
+                    fontSize = 13.sp, // Adjusted size
                     fontFamily = monte,
-                    maxLines = 1,
-                    modifier = Modifier
-                        .padding(start = 4.dp, bottom = 4.dp)
-                        .align(Alignment.BottomStart)  // Positioned at the bottom start
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis
                 )
-            }
-        }
-    }
-}
-
-
-
-@Composable
-fun FilterChip(text: String, isSelected: Boolean, onSelected: (Boolean) -> Unit) {
-    val backgroundColor = if (isSelected) Color(26, 77, 46) else Color(0x801A4D2E)
-    val textColor = Color.White
-    Button(
-        onClick = { onSelected(!isSelected) },
-        shape = RoundedCornerShape(16.dp),
-        colors = ButtonDefaults.buttonColors(backgroundColor = backgroundColor, contentColor = textColor),
-        contentPadding = PaddingValues(horizontal = 12.dp, vertical = 6.dp),
-        elevation = ButtonDefaults.elevation(0.dp)
-    ) {
-        Icon(Icons.Filled.Person, contentDescription = "Filter Icon", tint = textColor, modifier = Modifier.size(16.dp))
-        Spacer(modifier = Modifier.width(4.dp))
-        Text(text, fontSize = 12.sp)
-    }
-}
-
-@Composable
-fun CollectionChip(text: String, isSelected: Boolean, onSelected: (String) -> Unit) {
-    val backgroundColor = if (isSelected) Color(0xFF1A4D2E) else Color(0x801A4D2E)
-    val textColor = Color.White
-    Button(
-        onClick = { onSelected(text) },
-        shape = RoundedCornerShape(16.dp),
-        colors = ButtonDefaults.buttonColors(backgroundColor = backgroundColor, contentColor = textColor),
-        contentPadding = PaddingValues(horizontal = 12.dp, vertical = 6.dp),
-        elevation = ButtonDefaults.elevation(0.dp)
-    ) {
-        Text(text, fontSize = 12.sp, fontFamily = monte)
-    }
-}
-
-@Composable
-fun RecipeCard(recipe: Recipe) {
-    var isFavorite by remember { mutableStateOf(recipe.favorite) }
-    Card(
-        shape = RoundedCornerShape(8.dp),
-        backgroundColor = Color(0xFFF0FFF0),
-        elevation = 1.dp,
-        modifier = Modifier
-            .padding(4.dp)
-            .aspectRatio(1f)
-            .height(175.dp)
-            .clickable { /* Handle click */ }
-    ) {
-        Box(modifier = Modifier.fillMaxSize()) {
-            Image(
-                painter = rememberImagePainter(recipe.imageResId),
-                contentDescription = recipe.name,
-                modifier = Modifier.fillMaxSize().clip(RoundedCornerShape(4.dp)),
-                contentScale = ContentScale.Crop
-            )
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .background(
-                        Brush.verticalGradient(
-                            colors = listOf(Color.Transparent, Color(60, 179, 107, 0), Color(26, 77, 46))
-                        )
-                    )
-            )
-            Text(
-                text = recipe.name,
-                fontWeight = FontWeight.Bold,
-                color = Color.White,
-                fontSize = 12.sp,
-                fontFamily = monte,
-                modifier = Modifier
-                    .align(Alignment.BottomStart)
-                    .padding(start = 8.dp, bottom = 8.dp)
-            )
-            IconButton(
-                onClick = {
-                    isFavorite = !isFavorite
-                    // TODO: Implement logic to update the recipe's favorite status
-                    println("Favorite clicked for ${recipe.name}, new state: $isFavorite")
-                },
-                modifier = Modifier
-                    .align(Alignment.BottomEnd)
-
-            ) {
-                Icon(
-                    imageVector = if (isFavorite) Icons.Filled.Favorite else Icons.Filled.FavoriteBorder,
-                    contentDescription = "Favorite",
-                    tint = if (isFavorite) Color(178, 49, 49) else Color.Black,
-                    modifier = Modifier.size(20.dp)
-                )
-            }
-
-            Row(
-                modifier = Modifier.padding(top = 8.dp, start = 8.dp)
-            ) {
-                Box(
-                    modifier = Modifier
-                        .background(Color(0x801A4D2E), RoundedCornerShape(8.dp))
-                        .padding(vertical = 2.dp, horizontal = 6.dp)
-                ) {
-                    Text(
-                        text = recipe.nameOfPerson,
-                        fontSize = 8.sp,
-                        fontFamily = monte,
-                        fontWeight = FontWeight.Bold,
-                        color = Color.White
-                    )
-                }
                 Spacer(modifier = Modifier.height(4.dp))
-                Box(
-                    modifier = Modifier
-                        .background(Color(0xA0FFFFFF), RoundedCornerShape(8.dp))
-                        .padding(vertical = 2.dp, horizontal = 6.dp)
-                ) {
-                    Text(
-                        text = recipe.category,
-                        fontSize = 8.sp,
-                        fontFamily = monte,
-                        color = Color.Black
-                    )
-                }
-
-                Box(
-                    modifier = Modifier
-                        .background(Color(0xA0FFFFFF), RoundedCornerShape(8.dp))
-                        .padding(vertical = 2.dp, horizontal = 6.dp)
-                ) {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Icon(
-                            Icons.Filled.Star,
-                            contentDescription = "Rating",
-                            tint = Color(0xFFFFC107),
-                            modifier = Modifier.size(10.dp)
-                        )
-                        Text(
-                            text = recipe.rating,
-                            fontSize = 8.sp,
-                            fontFamily = monte,
-                            modifier = Modifier.padding(start = 2.dp),
-                            color = Color.Black
-                        )
-                    }
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Icon( Icons.Filled.Star, contentDescription = "Rating", tint = RatingStarColor, modifier = Modifier.size(14.dp) )
+                    Spacer(modifier = Modifier.width(3.dp))
+                    Text( text = String.format("%.1f", recipe.averageRating), color = Color.White, fontSize = 11.sp, fontFamily = monte )
+                    // Add other info like time if desired
                 }
             }
         }
